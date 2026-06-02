@@ -1,0 +1,242 @@
+# project.toml
+# ============
+# Lives at the root of your project folder: projects/my-project/project.toml
+# This file declares the metadata for your entire creative project — the
+# "world" that contains all your stories, characters, places, and groups.
+#
+# If you have one standalone novella, you have one project.
+# If you have a shared universe with multiple stories, you still have one
+# project — but multiple story.toml files inside it.
+#
+# Required fields: title, genre, rating, author.name, license.code,
+# license.content. Everything else is optional.
+#
+# NOTE (Phase 1): In the current Astro-based setup, this file lives at
+# src/data/projects/my-project/project.toml inside your Keely project folder.
+# Phase 2 will move it to your content folder root.
+# -----------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------
+# IDENTITY
+# -----------------------------------------------------------------------
+
+# The display title of your project. Required.
+title = "My Project"
+
+# A one-line hook shown on the project landing page and in browse listings.
+# If omitted, no tagline appears.
+tagline = ""
+
+# A longer description of the project as a whole — the elevator pitch
+# readers see when they encounter the project. Supports markdown.
+# If omitted, no summary appears.
+summary = ""
+
+# When you started the project. Optional.
+# Format: YYYY-MM-DD
+created = 2026-01-01
+
+
+# -----------------------------------------------------------------------
+# IMAGES
+# -----------------------------------------------------------------------
+# Image files should be placed in projects/my-project/images/
+# Reference them here by filename only (not the full path).
+#
+# cover  — portrait orientation (recommended: 400×600px). Used in grid
+#           listings and storefronts. Think book cover.
+# banner — landscape orientation (recommended: 1200×400px). Used as a
+#           hero image at the top of your project landing page.
+#           Keep important content in the center 50% — edges may be cropped.
+#
+# If omitted, no image appears in that context.
+
+cover = ""
+banner = ""
+
+
+# -----------------------------------------------------------------------
+# GENRE
+# -----------------------------------------------------------------------
+
+# Primary genre. Required.
+# Controlled vocabulary — choose exactly one:
+#   Science Fiction, Fantasy, Romance, Mystery, Thriller, Horror,
+#   Historical Fiction, Alternative History, Literary Fiction, Western,
+#   Action and Adventure, LitRPG, Non-Fiction, Memoir, Fan Fiction
+genre = "Science Fiction"
+
+# Subgenre tags. Optional, free-form — use whatever niche descriptors
+# fit your work (e.g. "cozy", "sapphic", "grimdark", "solarpunk").
+# This is the right place for niche descriptors; genre is the broad filter.
+# If omitted, no subgenre tags appear.
+subgenre = []
+
+
+# -----------------------------------------------------------------------
+# RATING
+# -----------------------------------------------------------------------
+
+# Content rating. Required.
+# Controlled vocabulary — choose exactly one:
+#   Not Rated, General Audiences, Teen and Up, Mature, Explicit
+#
+# "Not Rated" is a valid deliberate choice, not a placeholder —
+# it means you have chosen not to assign a rating.
+# If your project contains stories of mixed ratings, set this to the
+# highest rating present across all stories.
+rating = "Not Rated"
+
+
+# -----------------------------------------------------------------------
+# AUTHOR
+# -----------------------------------------------------------------------
+
+[author]
+
+# Your display name as it appears on this project. Required.
+name = "My Name"
+
+# Your website or social profile. Optional.
+# If omitted, your name appears as plain text rather than a link.
+url = ""
+
+
+# -----------------------------------------------------------------------
+# AUTHOR'S NOTES (project level)
+# -----------------------------------------------------------------------
+# Standing notes about the project as a whole, visible on the project
+# landing page. Supports markdown and wiki-links ([[entity-slug]]).
+# Both top and bottom are optional. If omitted or left empty, they do
+# not appear for readers.
+#
+# top    — shown before the project content; good for standing context,
+#           universe notes, or a welcome message.
+# bottom — shown after the project content; good for closing commentary
+#           or ongoing acknowledgments.
+
+[author_notes]
+top = ""
+bottom = ""
+
+
+# -----------------------------------------------------------------------
+# UMBRELLA CONTENT WARNINGS (optional, project level)
+# -----------------------------------------------------------------------
+# Use this section to declare warnings that apply across your ENTIRE
+# project — every story inherits them and cannot remove them.
+# This is optional at the project level. Leave it out entirely if your
+# stories have different warning profiles; set warnings in each story.toml.
+#
+# If you do use this section:
+#   required  — the whole [content_warnings] section is optional at the
+#               project level. But if you include it, this field must be
+#               set. Choose one:
+#               graphic-violence | character-death | sexual-content |
+#               non-consent | creator-chose-not-to-warn | no-warnings-apply
+#               See REFERENCE.md for the full additional vocabulary list.
+#   additional — zero or more values from the additional vocabulary.
+#   custom     — zero or more free-form strings you write yourself.
+#
+# If omitted entirely, no umbrella warnings are set.
+
+# [content_warnings]
+# required = "no-warnings-apply"
+# additional = []
+# custom = []
+
+
+# -----------------------------------------------------------------------
+# LICENSING
+# -----------------------------------------------------------------------
+# code    — covers config files and any custom code in your project.
+# content — covers your prose, wiki entries, and all creative content.
+#
+# Stories can override either license in their own story.toml.
+# The Keely file format specification itself is CC0 / public domain
+# regardless of what you set here.
+#
+# Common content license options:
+#   "CC-BY-4.0"       — others can share and adapt with attribution
+#   "CC-BY-SA-4.0"    — same, but derivatives must use the same license
+#   "CC-BY-NC-4.0"    — attribution required, no commercial use
+#   "All Rights Reserved" — standard copyright, no reuse permitted
+
+[license]
+code = "MIT"
+content = "All Rights Reserved"
+
+
+# -----------------------------------------------------------------------
+# ENTITY TYPES
+# -----------------------------------------------------------------------
+# The three default entity types (characters, places, groups) are built
+# in — you only need to list them here if you want to customize their
+# display labels or colors.
+#
+# To add a custom entity type (e.g. "artifacts", "magic-systems"):
+#   1. Create a matching folder: projects/my-project/artifacts/
+#   2. Add an [[entity_types]] entry below with name = "artifacts"
+#   3. Add your entity folders inside it, each with an index.md
+#
+# Color accepts a CSS color name or hex value (e.g. "teal", "#4a90d9").
+# If omitted, the default color for that entity type is used.
+
+# Uncomment and edit to customize the defaults, or add new types below.
+
+# [[entity_types]]
+# name = "characters"
+# singular = "Character"
+# plural = "Characters"
+# color = "blue"
+
+# [[entity_types]]
+# name = "places"
+# singular = "Place"
+# plural = "Places"
+# color = "teal"
+
+# [[entity_types]]
+# name = "groups"
+# singular = "Group"
+# plural = "Groups"
+# color = "coral"
+
+# [[entity_types]]
+# name = "artifacts"        ← your custom type folder name
+# singular = "Artifact"
+# plural = "Artifacts"
+# color = "#a855f7"
+
+
+# -----------------------------------------------------------------------
+# READER DEFAULTS
+# -----------------------------------------------------------------------
+# These are the default settings for reader-facing UI features.
+# Readers can override any of these in their own browser (stored locally);
+# these values apply on a reader's first visit.
+# Individual stories can override these in their own story.toml.
+#
+# show_content_warnings — whether content warning banners display.
+#                         Default: true. Recommended to leave on.
+# show_author_notes     — whether author's notes display.
+#                         Default: true.
+# default_thread_view   — which thread readers start following.
+#                         Default: "main" (the full linear reading order).
+#                         Set to a thread name to start readers on that thread.
+# sidebar_collapsed     — whether the wiki sidebar starts collapsed.
+#                         Default: false (sidebar open).
+#                         Set to true for a cleaner first impression on
+#                         prose-heavy stories.
+# scene_date_display    — which publication date shows on scene pages.
+#                         "first" — original publication date (default)
+#                         "last"  — most recent update date
+#                         "both"  — show both when they differ
+
+[reader_defaults]
+show_content_warnings = true
+show_author_notes = true
+default_thread_view = "main"
+sidebar_collapsed = false
+scene_date_display = "first"

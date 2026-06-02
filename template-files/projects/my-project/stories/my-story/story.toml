@@ -1,0 +1,237 @@
+# story.toml
+# ==========
+# Lives at the root of your story folder:
+# projects/my-project/stories/my-story/story.toml
+#
+# This file declares the metadata for a single story within your project.
+# If you have one standalone novella, you have one story.toml.
+# If your project contains multiple stories, each has its own story.toml
+# inside its own folder.
+#
+# Many fields here inherit from project.toml if left out — see the
+# INHERITANCE section at the bottom for details.
+#
+# Required fields: title, genre, rating, completion_status,
+# content_warnings.required. Everything else is optional.
+#
+# NOTE (Phase 1): In the current Astro-based setup, this file lives at
+# src/data/projects/my-project/stories/my-story/story.toml
+# Phase 2 will move it to your content folder root.
+# -----------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------
+# IDENTITY
+# -----------------------------------------------------------------------
+
+# The display title of your story. Required.
+title = "My Story"
+
+# A one-line hook shown in browse listings and the story header.
+# If omitted, no tagline appears.
+tagline = ""
+
+# The URL slug for this story. If omitted, defaults to the folder name.
+# Only set this if you want the URL to differ from your folder name.
+# slug = "my-story"
+
+# The blurb readers see before they start reading — your story's back-cover
+# copy. Supports markdown. If omitted, no summary appears.
+summary = ""
+
+
+# -----------------------------------------------------------------------
+# IMAGES
+# -----------------------------------------------------------------------
+# Image files should be placed in your story folder alongside story.toml.
+# Reference them here by filename only (not the full path).
+# Images are not inherited from project.toml — set them explicitly here
+# if you want them on this story's pages.
+#
+# cover  — portrait orientation (recommended: 400×600px). Used in grid
+#           listings and storefronts. Think book cover.
+# banner — landscape orientation (recommended: 1200×400px). Used as a
+#           hero image at the top of your story landing page.
+#           Keep important content in the center 50% — edges may be cropped.
+#
+# If omitted, no image appears in that context.
+
+cover = ""
+banner = ""
+
+
+# -----------------------------------------------------------------------
+# GENRE
+# -----------------------------------------------------------------------
+
+# Primary genre. Required.
+# Controlled vocabulary — choose exactly one:
+#   Science Fiction, Fantasy, Romance, Mystery, Thriller, Horror,
+#   Historical Fiction, Alternative History, Literary Fiction, Western,
+#   Action and Adventure, LitRPG, Non-Fiction, Memoir, Fan Fiction
+genre = "Science Fiction"
+
+# Subgenre tags. Optional, free-form — use whatever niche descriptors
+# fit your work (e.g. "cozy", "sapphic", "grimdark", "solarpunk").
+# If omitted, no subgenre tags appear.
+subgenre = []
+
+
+# -----------------------------------------------------------------------
+# RATING
+# -----------------------------------------------------------------------
+
+# Content rating. Required.
+# Controlled vocabulary — choose exactly one:
+#   Not Rated, General Audiences, Teen and Up, Mature, Explicit
+#
+# "Not Rated" is a valid deliberate choice, not a placeholder —
+# it means you have chosen not to assign a rating.
+rating = "Not Rated"
+
+
+# -----------------------------------------------------------------------
+# STATUS & DATES
+# -----------------------------------------------------------------------
+
+# Where this story is in its publication life. Required.
+# Controlled vocabulary — choose exactly one:
+#   in-progress | complete | hiatus | abandoned
+completion_status = "in-progress"
+
+# When this story began publication. Optional.
+# Format: YYYY-MM-DD
+start_date = ""
+
+# Your expected total number of scenes or chapters. Optional.
+# Use a number, or "?" if you don't know yet.
+expected_chapters = "?"
+
+# last_updated is computed automatically at build time — do not set it here.
+
+
+# -----------------------------------------------------------------------
+# CONTENT WARNINGS
+# -----------------------------------------------------------------------
+# Content warnings are MANDATORY at the story level. The `required` field
+# must be set on every story — the build will fail if it is missing.
+#
+# This is intentional: "no warnings" is a deliberate statement, not an
+# oversight. Readers rely on this signal.
+#
+# required  — choose exactly one:
+#               graphic-violence | character-death | sexual-content |
+#               non-consent | creator-chose-not-to-warn | no-warnings-apply
+# additional — zero or more values from the additional vocabulary.
+#              See REFERENCE.md for the full list.
+# custom    — zero or more free-form warnings you write yourself.
+#             These are specific to this story and are not searchable
+#             across the site.
+#
+# Scene-level warnings (in each scene's index.md) are optional and
+# additive — they layer on top of these story-level warnings for
+# scenes with specific content. They never replace these.
+
+[content_warnings]
+required = "no-warnings-apply"
+additional = []
+custom = []
+
+
+# -----------------------------------------------------------------------
+# AUTHOR'S NOTES (story level)
+# -----------------------------------------------------------------------
+# Notes addressed to readers, visible on the story landing page.
+# Supports markdown and wiki-links ([[entity-slug]]).
+# Both top and bottom are optional. If omitted or left empty, they
+# do not appear for readers.
+#
+# top    — shown before the story content; good for context, update
+#           schedules, or a note to returning readers.
+# bottom — shown after the story content; good for credits, closing
+#           commentary, or beta reader thanks.
+
+[author_notes]
+top = ""
+bottom = ""
+
+
+# -----------------------------------------------------------------------
+# CREDITS & ACKNOWLEDGMENTS
+# -----------------------------------------------------------------------
+# Optional. Rendered on the story landing page after the summary.
+# All fields are optional — omit any you don't need.
+
+[credits]
+# List your beta readers by name.
+beta_readers = []
+# List your editors by name.
+editors = []
+
+[acknowledgments]
+# A dedication line. Plain text.
+dedication = ""
+# An in memoriam line. Plain text.
+in_memoriam = ""
+# Inspiration — free-form text or a list of titles/names.
+inspired_by = ""
+# A thanks-to list of names.
+thanks_to = []
+
+
+# -----------------------------------------------------------------------
+# LICENSE OVERRIDES
+# -----------------------------------------------------------------------
+# Optional. If omitted, this story inherits its license from project.toml.
+# Set either field here to override the project default for THIS story only.
+#
+# Common content license options:
+#   "CC-BY-4.0"       — others can share and adapt with attribution
+#   "CC-BY-SA-4.0"    — same, but derivatives must use the same license
+#   "CC-BY-NC-4.0"    — attribution required, no commercial use
+#   "All Rights Reserved" — standard copyright, no reuse permitted
+
+[license]
+code = "MIT"
+content = "All Rights Reserved"
+
+
+# -----------------------------------------------------------------------
+# READER DEFAULTS
+# -----------------------------------------------------------------------
+# These are the default settings for reader-facing UI features.
+# Readers can override any of these in their own browser (stored locally);
+# these values apply on a reader's first visit.
+# Individual stories can override these in their own story.toml.
+#
+# show_content_warnings — whether content warning banners display.
+#                         Default: true. Recommended to leave on.
+# show_author_notes     — whether author's notes display.
+#                         Default: true.
+# default_thread_view   — which thread readers start following.
+#                         Default: "main" (the full linear reading order).
+#                         Set to a thread name to start readers on that thread.
+# sidebar_collapsed     — whether the wiki sidebar starts collapsed.
+#                         Default: false (sidebar open).
+#                         Set to true for a cleaner first impression on
+#                         prose-heavy stories.
+# scene_date_display    — which publication date shows on scene pages.
+#                         "first" — original publication date (default)
+#                         "last"  — most recent update date
+#                         "both"  — show both when they differ
+
+[reader_defaults]
+show_content_warnings = true
+show_author_notes = true
+default_thread_view = "main"
+sidebar_collapsed = false
+scene_date_display = "first"
+
+
+# -----------------------------------------------------------------------
+# CROSS-PROJECT REFERENCES (Phase 2 hook)
+# -----------------------------------------------------------------------
+# Reserved for future use. The Phase 1 generator reads but ignores this.
+# You can safely omit this field entirely.
+
+linked_projects = []

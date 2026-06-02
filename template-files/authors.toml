@@ -1,0 +1,57 @@
+# authors.toml
+# ============
+# Lives at the root of your Keely project folder, alongside publisher.toml.
+# This file declares all authors associated with your Keely instance and
+# drives the /about page.
+#
+# Each [[authors]] entry is one person or pen name. Display order on the
+# about page follows the order entries appear here.
+#
+# Only `name` is required per entry. Everything else is optional.
+#
+# NOTE (Phase 1): In the current Astro-based setup, this file lives at
+# src/data/authors.toml inside your Keely project folder.
+# Phase 2 will move it to your content folder root.
+# -----------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------
+# AUTHOR ENTRY
+# Add one [[authors]] block per person or pen name. Copy the block to add more.
+# -----------------------------------------------------------------------
+
+[[authors]]
+
+# Your name or primary display name. Required.
+name = "My Name"
+
+# Your author bio, shown on the about page. Supports markdown.
+# If omitted, no bio appears.
+bio = ""
+
+# Your portrait image filename, relative to src/data/.
+# If omitted, no portrait appears.
+portrait = ""
+
+# External links — your website, social profiles, newsletter, etc.
+# Each link needs a `label` and a `url`.
+# If omitted, no links appear.
+# To add links, uncomment and fill in the example below, duplicating
+# the pair of lines for each additional link.
+links = [
+  # { label = "My Website", url = "https://example.com" },
+  # { label = "Mastodon", url = "https://example.social/@myname" },
+]
+
+
+# -----------------------------------------------------------------------
+# ADDITIONAL AUTHORS OR PEN NAMES
+# If you co-author with someone or use additional pen names, copy the
+# block above and paste it here.
+# -----------------------------------------------------------------------
+
+# [[authors]]
+# name = "Co-Author Name or Pen Name"
+# bio = ""
+# portrait = ""
+# links = []

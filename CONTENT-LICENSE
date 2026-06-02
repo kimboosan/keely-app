@@ -1,0 +1,23 @@
+Keely File Format Specification — CC0 1.0 Universal Public Domain Dedication
+
+The Keely file format specification — including all schema definitions,
+field names, controlled vocabularies, and structural conventions documented
+in this repository — is dedicated to the public domain under the Creative
+Commons CC0 1.0 Universal license.
+
+To the extent possible under law, KimBoo York has waived all copyright and
+related or neighboring rights to the Keely file format specification.
+
+This means you are free to:
+- Implement the Keely file format in your own tools
+- Adapt the format for your own purposes
+- Build on it without restriction or attribution requirement
+
+This dedication covers the FILE FORMAT SPECIFICATION ONLY. It does not cover:
+- The Keely generator code, which is licensed under the MIT License (see LICENSE)
+- Author content created using Keely (characters, scenes, prose, wiki entries,
+  and all other creative work), which remains the copyright of the respective
+  author under the terms they choose
+
+For the full legal text of the CC0 1.0 Universal license, see:
+https://creativecommons.org/publicdomain/zero/1.0/
