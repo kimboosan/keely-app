@@ -1,10 +1,10 @@
 # Keely
 
-A static site generator for serialized fiction with integrated wiki.
+A static site generator for serialized fiction with integrated wiki developed and shared by KimBoo York.
 
-Keely turns plain markdown files into a dual-pane reader site — prose on the left, 
-live wiki entries on the right, with character and place names clickable throughout 
-the story text.
+**STATUS**: Version 0.5 
+
+Keely turns plain markdown files into a dual-pane reader site — prose on the left, live wiki entries on the right, with character and place names clickable throughout the story text.
 
 **→ Start here: [START-HERE.md](START-HERE.md)**
 
