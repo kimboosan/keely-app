@@ -1,0 +1,73 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import { getProjectConfig } from '../../../utils/config.js';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const { getProjects } = await import('../../../utils/config.js');
+  const projects = getProjects();
+  return projects.map(project => ({ params: { project: project.slug } }));
+}
+
+const { project } = Astro.params;
+const projectConfig = await getProjectConfig(project);
+
+const allCharacters = (await getCollection('characters')).filter(e => e.data.project.includes(project));
+const allPlaces = (await getCollection('places')).filter(e => e.data.project.includes(project));
+const allGroups = (await getCollection('groups')).filter(e => e.data.project.includes(project));
+---
+
+<SiteLayout
+  title={`Wiki — ${projectConfig.title}`}
+  backLink={`/projects/${project}`}
+  backLabel={projectConfig.title}
+>
+  <div class="wiki-index">
+    <h1>Wiki</h1>
+
+    <section class="wiki-index-section">
+      <h2>
+        <a href={`/${project}/characters`}>Characters</a>
+      </h2>
+      <ul class="wiki-index-list">
+        {allCharacters.map(character => (
+          <li>
+            <a href={`/${project}/characters/${character.id}`}>
+              {character.data.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="wiki-index-section">
+      <h2>
+        <a href={`/${project}/places`}>Places</a>
+      </h2>
+      <ul class="wiki-index-list">
+        {allPlaces.map(place => (
+          <li>
+            <a href={`/${project}/places/${place.id}`}>
+              {place.data.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="wiki-index-section">
+      <h2>
+        <a href={`/${project}/groups`}>Groups</a>
+      </h2>
+      <ul class="wiki-index-list">
+        {allGroups.map(group => (
+          <li>
+            <a href={`/${project}/groups/${group.id}`}>
+              {group.data.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</SiteLayout>

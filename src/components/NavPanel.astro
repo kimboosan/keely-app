@@ -1,0 +1,63 @@
+---
+const { hierarchy, currentSceneId, storySlug, projectSlug } = Astro.props;
+---
+
+<div id="nav-panel" style="display:none;">
+  <h3>Story Navigation</h3>
+  {hierarchy.map((node) => {
+    if (node.type === 'arc') {
+      return (
+        <div class="nav-arc">
+          <div class="nav-arc-label">{node.label}</div>
+          {node.chapters.map((chapter) => (
+            <div class="nav-chapter">
+              <div class="nav-chapter-label">{chapter.label}</div>
+              <ul class="nav-scene-list">
+                {chapter.scenes.map(({ scene, sceneNumber }) => (
+                  <li class={scene.id.split('/').pop() === currentSceneId ? 'current' : ''}>
+                    <a href={`/${projectSlug}/stories/${storySlug}/scenes/${scene.id.split('/').pop()}`}>{sceneNumber}. {scene.data.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (node.type === 'chapter') {
+      return (
+        <div class="nav-chapter">
+          <div class="nav-chapter-label">{node.label}</div>
+          <ul class="nav-scene-list">
+            {node.scenes.map(({ scene, sceneNumber }) => (
+              <li class={scene.id.split('/').pop() === currentSceneId ? 'current' : ''}>
+                <a href={`/${projectSlug}/stories/${storySlug}/scenes/${scene.id.split('/').pop()}`}>{sceneNumber}. {scene.data.title}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+    if (node.type === 'scene') {
+      return (
+        <ul class="nav-scene-list">
+          <li class={node.scene.id.split('/').pop() === currentSceneId ? 'current' : ''}>
+            <a href={`/${projectSlug}/stories/${storySlug}/scenes/${node.scene.id.split('/').pop()}`}>{node.sceneNumber}. {node.scene.data.title}</a>
+          </li>
+        </ul>
+      );
+    }
+  })}
+</div>
+<style>
+  #nav-panel h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #666; margin-bottom: 0.75rem; }
+  #nav-panel .nav-arc { margin-bottom: 1rem; }
+  #nav-panel .nav-arc-label { font-weight: bold; font-size: 0.95rem; margin-bottom: 0.4rem; }
+  #nav-panel .nav-chapter { margin-left: 0.75rem; margin-bottom: 0.5rem; }
+  #nav-panel .nav-chapter-label { font-size: 0.85rem; color: #555; margin-bottom: 0.3rem; }
+  #nav-panel .nav-scene-list { list-style: none; margin-left: 0.75rem; }
+  #nav-panel .nav-scene-list li { margin-bottom: 0.2rem; }
+  #nav-panel .nav-scene-list a { font-size: 0.9rem; color: #333; text-decoration: none; }
+  #nav-panel .nav-scene-list a:hover { text-decoration: underline; }
+  #nav-panel .nav-scene-list li.current a { font-weight: bold; color: #1a1a2e; }
+</style>

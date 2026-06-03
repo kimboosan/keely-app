@@ -1,0 +1,132 @@
+---
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import { readFileSync } from 'fs';
+import { getProjects, getProjectConfig } from '../../../utils/config.js';
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import { slugify } from '../../../utils/config.js';
+
+export async function getStaticPaths() {
+  const characters = await getCollection('characters');
+  const projects = getProjects();
+  const paths = [];
+  for (const project of projects) {
+    characters.forEach(character => {
+      paths.push({
+        params: { project: project.slug, slug: character.id },
+        props: { character },
+      });
+    });
+  }
+  return paths;
+}
+
+const { project } = Astro.params;
+const { character } = Astro.props;
+const { Content } = await render(character);
+const projectConfig = await getProjectConfig(project);
+
+const relationships = JSON.parse(
+  readFileSync('./src/data/relationships.json', 'utf-8')
+);
+const appearsIn = relationships.characterScenes[character.id] || [];
+const mentionedIn = relationships.mentionedIn[character.id] || [];
+const mentionedInOnly = mentionedIn.filter(
+  m => !appearsIn.some(a => a.slug === m.slug)
+);
+
+const allImages = import.meta.glob('/src/content/characters/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const portraitImage = character.data.portrait
+  ? allImages[`/src/content/characters/${character.id}/${character.data.portrait}`]?.default
+  : null;
+
+function getDisplayName(character) {
+  const { name, title } = character.data;
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) {
+    return title ? `${title} ${name}` : name;
+  }
+  return title ? `${title} ${name}` : name;
+}
+---
+
+<SiteLayout
+  title={`${getDisplayName(character)} — ${projectConfig.title}`}
+  backLink={`/${project}/characters`}
+  backLabel="Characters"
+>
+  <main class="entity-page">
+    <h1>{getDisplayName(character)}</h1>
+
+    <div class="entity-meta">
+      {character.data.occupation && (
+        <p><strong>Occupation:</strong> {character.data.occupation}</p>
+      )}
+      {character.data.age && (
+        <p><strong>Age:</strong> {character.data.age}</p>
+      )}
+      {character.data.aliases && character.data.aliases.length > 0 && (
+        <p><strong>Aliases:</strong> {character.data.aliases.join(', ')}</p>
+      )}
+      {character.data.appearance && (
+        <p><strong>Appearance:</strong> {character.data.appearance}</p>
+      )}
+    </div>
+      {portraitImage && (
+        <div class="entity-portrait">
+          <Image
+            src={portraitImage}
+            alt={character.data.portrait_alt ?? ''}
+            width={300}
+            height={400}
+          />
+        </div>
+      )}
+    <div class="entity-prose">
+      <Content />
+    </div>
+
+    {appearsIn.length > 0 && (
+      <div class="entity-appearances">
+        <h2>Appears In</h2>
+        <ul>
+          {appearsIn.map(scene => (
+            <li>
+              <a href={`/${project}/stories/${scene.storySlug}/scenes/${scene.slug}`}>
+                {scene.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {mentionedInOnly.length > 0 && (
+      <div class="entity-appearances">
+        <h2>Mentioned In</h2>
+        <ul>
+          {mentionedInOnly.map(scene => (
+            <li>
+              <a href={`/${project}/stories/${scene.storySlug}/scenes/${scene.slug}`}>
+                {scene.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {character.data.tags && character.data.tags.length > 0 && (
+      <div class="entity-tags">
+        <h2>Tags</h2>
+        <ul>
+          {character.data.tags.map(tag => (
+            <li class="tag">
+              <a href={`/${project}/tags/${slugify(tag)}`}>{tag}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </main>
+</SiteLayout>

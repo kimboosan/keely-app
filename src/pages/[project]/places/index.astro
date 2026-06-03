@@ -1,0 +1,51 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import { getCollection } from 'astro:content';
+import { getProjects, getProjectConfig } from '../../../utils/config.js';
+
+export async function getStaticPaths() {
+  const projects = getProjects();
+  return projects.map(project => ({ params: { project: project.slug } }));
+}
+
+const { project } = Astro.params;
+const projectConfig = await getProjectConfig(project);
+const allPlaces = (await getCollection('places')).filter(e => e.data.project.includes(project));
+
+
+function getSortName(place) {
+  const name = place.data.name.trim();
+  return name.replace(/^the\s+/i, '').toLowerCase();
+}
+
+function getDisplayName(place) {
+  return place.data.name;
+}
+
+const sortedPlaces = [...allPlaces].sort((a, b) =>
+  getSortName(a).localeCompare(getSortName(b))
+);
+---
+
+<SiteLayout
+  title={`Places — ${projectConfig.title}`}
+  backLink={`/${project}/wiki`}
+  backLabel="Wiki"
+>
+  <div class="entity-index">
+    <h1>Places</h1>
+    <div class="entity-grid">
+      {sortedPlaces.map(place => (
+        <a class="entity-card" href={`/${project}/places/${place.id}`}>
+          <div class="entity-card-name">{getDisplayName(place)}</div>
+          {place.data.function && (
+            <div class="entity-card-sub">{place.data.function}</div>
+          )}
+          {!place.data.function && place.data.status && (
+            <div class="entity-card-sub">{place.data.status}</div>
+          )}
+        </a>
+      ))}
+    </div>
+  </div>
+</SiteLayout>

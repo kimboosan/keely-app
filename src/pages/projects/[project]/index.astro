@@ -1,0 +1,77 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import { Image } from 'astro:assets';
+import { getProjectConfig, getPublisherConfig, getProjects, getStoriesForProject } from '../../../utils/config.js';
+
+export async function getStaticPaths() {
+  const projects = getProjects();
+  return projects.map(project => ({
+    params: { project: project.slug }
+  }));
+}
+
+const { project: projectSlug } = Astro.params;
+const project = getProjectConfig(projectSlug);
+const publisher = getPublisherConfig();
+const stories = getStoriesForProject(projectSlug);
+
+const allImages = import.meta.glob('/src/data/projects/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const coverImage = project.cover
+  ? allImages[`/src/data/projects/${projectSlug}/${project.cover}`]?.default
+  : null;
+const bannerImage = project.banner
+  ? allImages[`/src/data/projects/${projectSlug}/${project.banner}`]?.default
+  : null;
+---
+
+<SiteLayout
+  title={project.title}
+  backLink="/projects"
+  backLabel="Projects"
+>
+  {bannerImage && (
+    <div class="project-banner">
+      <Image
+        src={bannerImage}
+        alt={`${project.title} banner`}
+        width={1200}
+        height={400}
+      />
+    </div>
+  )}
+
+  <div class="project-landing">
+    <h1>{project.title}</h1>
+      {project.tagline && <p class="project-tagline">{project.tagline}</p>}
+
+      {(project.genre || project.rating) && (
+        <div class="story-meta-tags">
+          {project.genre && <span class="meta-genre">{project.genre}</span>}
+          {project.subgenre?.map(s => (
+            <span class="meta-subgenre">{s}</span>
+          ))}
+          {project.rating && <span class="meta-rating">{project.rating}</span>}
+        </div>
+      )}
+
+      {project.summary && <p class="project-summary">{project.summary}</p>}
+    <p class="project-author">By <a href={project.author.url}>{project.author.name}</a></p>
+
+    {project.author_notes?.top && (
+      <div class="project-author-note">
+        {project.author_notes.top}
+      </div>
+    )}
+
+    <div class="project-stories">
+      <h2>Stories</h2>
+      {stories.map(story => (
+        <p>
+          <a href={`/${projectSlug}/stories/${story.slug}`}>{story.title}</a>
+          {story.tagline && <span class="project-story-tagline"> — {story.tagline}</span>}
+        </p>
+      ))}
+    </div>
+
+  </div>
+</SiteLayout>

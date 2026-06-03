@@ -1,0 +1,45 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import { getPublisherConfig, getProjects } from '../../utils/config.js';
+import { Image } from 'astro:assets';
+
+const publisher = getPublisherConfig();
+const projects = getProjects();
+
+const allImages = import.meta.glob('/src/data/projects/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+---
+
+<SiteLayout
+  title={`${publisher.projects_label ?? 'Stories'} — ${publisher.name}`}
+  backLink="/"
+  backLabel={publisher.name}
+>
+  <div class="projects-index">
+    <h1>{publisher.projects_label ?? 'Stories'}</h1>
+    <div class="projects-grid">
+      {projects.map(project => {
+        const coverImage = project.cover
+          ? allImages[`/src/data/projects/${project.slug}/${project.cover}`]?.default
+          : null;
+        return (
+          <a href={`/projects/${project.slug}`} class="project-card">
+            {coverImage
+              ? <Image src={coverImage} alt={project.title} width={400} height={600} class="project-card-cover" />
+              : <div class="project-card-cover-placeholder" />
+            }
+          <div class="project-card-meta">
+            <h2>{project.title}</h2>
+            {project.tagline && <p class="project-card-tagline">{project.tagline}</p>}
+            {(project.genre || project.rating) && (
+              <div class="story-meta-tags project-card-tags">
+                {project.genre && <span class="meta-genre">{project.genre}</span>}
+                {project.rating && <span class="meta-rating">{project.rating}</span>}
+              </div>
+            )}
+          </div>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+</SiteLayout>

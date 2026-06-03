@@ -1,0 +1,43 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import { getCollection } from 'astro:content';
+import { getProjects, getProjectConfig } from '../../../utils/config.js';
+
+export async function getStaticPaths() {
+  const projects = getProjects();
+  return projects.map(project => ({ params: { project: project.slug } }));
+}
+
+const { project } = Astro.params;
+const projectConfig = await getProjectConfig(project);
+const allGroups = (await getCollection('groups')).filter(e => e.data.project.includes(project));
+
+function getSortName(group) {
+  const name = group.data.name.trim();
+  return name.replace(/^the\s+/i, '').toLowerCase();
+}
+
+const sortedGroups = [...allGroups].sort((a, b) =>
+  getSortName(a).localeCompare(getSortName(b))
+);
+---
+
+<SiteLayout
+  title={`Groups — ${projectConfig.title}`}
+  backLink={`/${project}/wiki`}
+  backLabel="Wiki"
+>
+  <div class="entity-index">
+    <h1>Groups</h1>
+    <div class="entity-grid">
+      {sortedGroups.map(group => (
+        <a class="entity-card" href={`/${project}/groups/${group.id}`}>
+          <div class="entity-card-name">{group.data.name}</div>
+          {group.data.subtype && (
+            <div class="entity-card-sub">{group.data.subtype}</div>
+          )}
+        </a>
+      ))}
+    </div>
+  </div>
+</SiteLayout>

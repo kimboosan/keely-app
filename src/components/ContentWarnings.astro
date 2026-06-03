@@ -1,0 +1,148 @@
+---
+// ContentWarnings.astro
+const { storyWarnings, sceneWarnings } = Astro.props;
+
+const hasStoryWarnings =
+  (storyWarnings?.required && storyWarnings.required !== 'no-warnings-apply') ||
+  storyWarnings?.additional?.length > 0 ||
+  storyWarnings?.custom?.length > 0;
+
+const hasSceneWarnings =
+  sceneWarnings?.additional?.length > 0 ||
+  sceneWarnings?.custom?.length > 0;
+
+const hasAnyWarnings = hasStoryWarnings || hasSceneWarnings;
+---
+
+{hasAnyWarnings && (
+  <div class="cw-wrapper" id="cw-wrapper">
+    <button class="cw-toggle" id="cw-toggle" aria-expanded="false" aria-controls="cw-content">
+      ⚠ Content warnings — <span id="cw-toggle-label">Show</span>
+    </button>
+    <div class="cw-content" id="cw-content" hidden>
+      {hasStoryWarnings && (
+        <div class="cw-story">
+          <span class="cw-section-label">Story-wide warnings:</span>
+          <div class="cw-tags">
+            {storyWarnings.required && storyWarnings.required !== 'no-warnings-apply' && (
+              <span class="cw-tag cw-required">{storyWarnings.required.replace(/-/g, ' ')}</span>
+            )}
+            {storyWarnings.additional?.map(w => (
+              <span class="cw-tag">{w.replace(/-/g, ' ')}</span>
+            ))}
+          </div>
+          {storyWarnings.custom?.length > 0 && (
+            <ul class="cw-custom-list">
+              {storyWarnings.custom.map(w => <li>{w}</li>)}
+            </ul>
+          )}
+        </div>
+      )}
+      <div class="cw-scene">
+        <span class="cw-section-label">Additionally in this scene:</span>
+        {hasSceneWarnings ? (
+          <Fragment>
+            <div class="cw-tags">
+              {sceneWarnings?.additional?.map(w => (
+                <span class="cw-tag">{w.replace(/-/g, ' ')}</span>
+              ))}
+            </div>
+            {sceneWarnings?.custom?.length > 0 && (
+              <ul class="cw-custom-list">
+                {sceneWarnings.custom.map(w => <li>{w}</li>)}
+              </ul>
+            )}
+          </Fragment>
+        ) : (
+          <p class="cw-none">No additional warnings for this scene.</p>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
+<style>
+  .cw-wrapper {
+    margin: 0.5rem 0 0.75rem 0;
+    font-size: 0.875rem;
+  }
+
+  .cw-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--color-link);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-family: inherit;
+  }
+
+  .cw-toggle:hover {
+    text-decoration: underline;
+  }
+
+  .cw-content {
+    margin-top: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-meta-bg, #f5f5f5);
+    border-left: 3px solid var(--color-warning, #c97d00);
+    border-radius: 2px;
+  }
+
+  .cw-story {
+    margin-bottom: 0.5rem;
+  }
+
+  .cw-scene {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-warning, #c97d00);
+  }
+
+  .cw-section-label {
+    display: block;
+    font-weight: bold;
+    font-size: 0.8rem;
+    margin-bottom: 0.35rem;
+    color: var(--color-meta-text, #555);
+  }
+
+  .cw-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .cw-tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    background: var(--color-warning-bg, #fff3cd);
+    border: 1px solid var(--color-warning, #c97d00);
+    border-radius: 3px;
+    font-size: 0.8rem;
+    text-transform: capitalize;
+  }
+
+  .cw-required {
+    font-weight: bold;
+  }
+
+  .cw-custom-list {
+    margin: 0.4rem 0 0 0;
+    padding-left: 1.25rem;
+    font-style: italic;
+    color: var(--color-meta-text, #555);
+    font-size: 0.8rem;
+  }
+
+  .cw-custom-list li {
+    margin-bottom: 0.2rem;
+  }
+
+  .cw-none {
+    font-style: italic;
+    color: var(--color-meta-text, #555);
+    font-size: 0.8rem;
+    margin: 0.25rem 0 0 0;
+  }
+</style>

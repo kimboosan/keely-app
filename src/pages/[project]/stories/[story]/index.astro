@@ -1,0 +1,137 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import { getStoryConfig, getProjectConfig, getProjects, getStoriesForProject } from '../../../../utils/config.js';
+import SiteLayout from '../../../../layouts/SiteLayout.astro';
+
+export async function getStaticPaths() {
+  const projects = getProjects();
+  const paths = [];
+  for (const project of projects) {
+    const stories = getStoriesForProject(project.slug);
+    for (const story of stories) {
+      paths.push({
+        params: { project: project.slug, story: story.slug }
+      });
+    }
+  }
+  return paths;
+}
+
+const { project, story: storySlug } = Astro.params;
+const story = getStoryConfig(project, storySlug);
+console.log('story.genre:', story.genre);
+console.log('story.rating:', story.rating);
+const projectConfig = getProjectConfig(project);
+
+const scenes = await getCollection('scenes');
+
+const sorted = scenes
+  .filter(s => s.id.startsWith(`${storySlug}/scenes/`))
+  .sort((a, b) => a.id.localeCompare(b.id));
+
+const firstScene = sorted[0] ?? null;
+
+const allImages = import.meta.glob('/src/data/projects/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const storyBanner = story.banner
+  ? allImages[`/src/data/projects/${project}/stories/${storySlug}/${story.banner}`]?.default
+  : null;
+---
+
+<SiteLayout
+  title={story.title}
+  backLink={`/projects/${project}`}
+  backLabel={projectConfig.title}
+>
+  <div class="story-landing">
+
+    {storyBanner && (
+      <div class="story-banner">
+        <Image
+          src={storyBanner}
+          alt={`${story.title} cover`}
+          width={1200}
+          height={400}
+        />
+      </div>
+    )}
+
+    <h1>{story.title}</h1>
+    {story.tagline && <p class="story-tagline">{story.tagline}</p>}
+    {story.subtitle && <p class="story-subtitle">{story.subtitle}</p>}
+
+    {(story.genre || story.rating) && (
+      <div class="story-meta-tags">
+        {story.genre && <span class="meta-genre">{story.genre}</span>}
+        {story.subgenre?.map(s => (
+          <span class="meta-subgenre">{s}</span>
+        ))}
+        {story.rating && <span class="meta-rating">{story.rating}</span>}
+      </div>
+    )}
+
+    {story.summary && (
+      <div class="story-summary">
+        <strong>Summary:</strong> {story.summary}
+      </div>
+    )}
+
+    {story.author_notes?.top && (
+      <div class="story-author-note">
+        <strong>Author Note:</strong> {story.author_notes.top}
+      </div>
+    )}
+
+    <a href={`/${project}/stories/${storySlug}/scenes/${firstScene.id.split('/').pop()}`} class="story-start">Start Reading →</a>
+
+    {(story.content_warnings?.required !== 'no-warnings-apply' ||
+      story.content_warnings?.additional?.length > 0 ||
+      story.content_warnings?.custom?.length > 0) && (
+      <div class="story-block story-block--warnings">
+        <h2>Content Warnings</h2>
+        <ul>
+          {story.content_warnings.required !== 'no-warnings-apply' && (
+            <li>{story.content_warnings.required}</li>
+          )}
+          {story.content_warnings.additional?.map(w => <li>{w}</li>)}
+          {story.content_warnings.custom?.map(w => <li>{w}</li>)}
+        </ul>
+      </div>
+    )}
+
+    {(story.credits?.beta_readers?.length > 0 ||
+      story.credits?.editors?.length > 0) && (
+      <div class="story-block story-block--credits">
+        <h2>Credits</h2>
+        {story.credits.beta_readers?.length > 0 && (
+          <p><strong>Beta readers:</strong> {story.credits.beta_readers.join(', ')}</p>
+        )}
+        {story.credits.editors?.length > 0 && (
+          <p><strong>Editors:</strong> {story.credits.editors.join(', ')}</p>
+        )}
+      </div>
+    )}
+
+    {(story.acknowledgments?.dedication ||
+      story.acknowledgments?.in_memoriam ||
+      story.acknowledgments?.inspired_by ||
+      story.acknowledgments?.thanks_to?.length > 0) && (
+      <div class="story-block story-block--acknowledgments">
+        <h2>Acknowledgments</h2>
+        {story.acknowledgments.dedication && (
+          <p><em>Dedication: {story.acknowledgments.dedication}</em></p>
+        )}
+        {story.acknowledgments.in_memoriam && (
+          <p><em>In memoriam: {story.acknowledgments.in_memoriam}</em></p>
+        )}
+        {story.acknowledgments.inspired_by && (
+          <p><strong>Inspired by:</strong> {story.acknowledgments.inspired_by}</p>
+        )}
+        {story.acknowledgments.thanks_to?.length > 0 && (
+          <p><strong>Thanks to:</strong> {story.acknowledgments.thanks_to.join(', ')}</p>
+        )}
+      </div>
+    )}
+
+  </div>
+</SiteLayout>

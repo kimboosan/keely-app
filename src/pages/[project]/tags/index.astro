@@ -1,0 +1,57 @@
+---
+import { getCollection } from 'astro:content';
+import { getProjects, getProjectConfig, slugify } from '../../../utils/config.js';
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+
+export async function getStaticPaths() {
+  const projects = getProjects();
+  return projects.map(project => ({
+    params: { project: project.slug },
+    props: { projectSlug: project.slug },
+  }));
+}
+
+const { project } = Astro.params;
+const projectConfig = await getProjectConfig(project);
+
+const characters = (await getCollection('characters')).filter(e => e.data.project.includes(project));
+const places = (await getCollection('places')).filter(e => e.data.project.includes(project));
+const groups = (await getCollection('groups')).filter(e => e.data.project.includes(project));
+
+const allEntities = [...characters, ...places, ...groups];
+
+// Build a map of tag slug → display label, sorted alphabetically
+const tagMap = new Map();
+for (const entity of allEntities) {
+  for (const tag of entity.data.tags ?? []) {
+    const slug = slugify(tag);
+    if (!tagMap.has(slug)) tagMap.set(slug, tag);
+  }
+}
+
+const sortedTags = [...tagMap.entries()].sort((a, b) =>
+  a[1].localeCompare(b[1])
+);
+---
+
+<SiteLayout
+  title={`Tags — ${projectConfig.title}`}
+  backLink={`/${project}/wiki`}
+  backLabel="Wiki"
+>
+  <main class="tags-index">
+    <h1>Tags</h1>
+
+    {sortedTags.length === 0 && (
+      <p>No tags yet.</p>
+    )}
+
+    <ul class="tags-list">
+      {sortedTags.map(([slug, label]) => (
+        <li>
+          <a href={`/${project}/tags/${slug}`}>{label}</a>
+        </li>
+      ))}
+    </ul>
+  </main>
+</SiteLayout>

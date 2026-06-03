@@ -1,0 +1,33 @@
+---
+import SiteLayout from './SiteLayout.astro';
+import { getStoryConfig } from '../utils/config.js';
+
+const { title, projectSlug, storySlug, sidebarCollapsed = false } = Astro.props;
+const story = getStoryConfig(projectSlug, storySlug);
+---
+
+<SiteLayout
+  title={title}
+  backLink={`/${projectSlug}/stories/${storySlug}`}
+  backLabel={story.title}
+  showNavToggle={true}
+  showWikiToggle={true}
+  sidebarCollapsed={sidebarCollapsed}
+>
+  <div id="pane-row">
+    <div id="prose-pane">
+      <slot name="prose" />
+    </div>
+    <button id="wiki-toggle">‹</button>
+    <div id="wiki-pane">
+      <div class="wiki-pane-inner">
+        <div class="wiki-pane-index-link">
+          <a href={`/${projectSlug}/wiki`}>Wiki Index ↗</a>
+        </div>
+        <slot name="wiki" />
+      </div>
+    </div>
+  </div>
+  <div id="wiki-backdrop"></div>
+  <script is:inline src="/scripts/reader.js"></script>
+</SiteLayout>

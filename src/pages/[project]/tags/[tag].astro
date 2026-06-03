@@ -1,0 +1,98 @@
+---
+import { getCollection } from 'astro:content';
+import { getProjects, getProjectConfig, slugify } from '../../../utils/config.js';
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+
+export async function getStaticPaths() {
+  const projects = getProjects();
+  const allCharacters = await getCollection('characters');
+  const allPlaces = await getCollection('places');
+  const allGroups = await getCollection('groups');
+
+  const paths = [];
+
+  for (const project of projects) {
+    const characters = allCharacters.filter(e => e.data.project.includes(project.slug));
+    const places = allPlaces.filter(e => e.data.project.includes(project.slug));
+    const groups = allGroups.filter(e => e.data.project.includes(project.slug));
+
+    const allEntities = [
+      ...characters.map(e => ({ ...e, entityType: 'characters' })),
+      ...places.map(e => ({ ...e, entityType: 'places' })),
+      ...groups.map(e => ({ ...e, entityType: 'groups' })),
+    ];
+
+    const tagMap = new Map();
+    for (const entity of allEntities) {
+      for (const tag of entity.data.tags ?? []) {
+        const slug = slugify(tag);
+        if (!tagMap.has(slug)) tagMap.set(slug, tag);
+      }
+    }
+
+    for (const [tagSlug, tagLabel] of tagMap) {
+      paths.push({
+        params: { project: project.slug, tag: tagSlug },
+        props: { tagLabel, allEntities, projectSlug: project.slug },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { project } = Astro.params;
+const { tagLabel, allEntities, projectSlug } = Astro.props;
+const projectConfig = await getProjectConfig(project);
+
+const tagged = allEntities.filter(e =>
+  (e.data.tags ?? []).some(t => slugify(t) === Astro.params.tag)
+);
+
+const characters = tagged.filter(e => e.entityType === 'characters');
+const places = tagged.filter(e => e.entityType === 'places');
+const groups = tagged.filter(e => e.entityType === 'groups');
+---
+
+<SiteLayout
+  title={`${tagLabel} — ${projectConfig.title}`}
+  backLink={`/${project}/tags`}
+  backLabel="Tags"
+>
+  <main class="tag-page">
+    <h1>{tagLabel}</h1>
+
+    {characters.length > 0 && (
+      <section class="tag-section">
+        <h2>Characters</h2>
+        <ul>
+          {characters.map(e => (
+            <li><a href={`/${project}/characters/${e.id}`}>{e.data.name}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {places.length > 0 && (
+      <section class="tag-section">
+        <h2>Places</h2>
+        <ul>
+          {places.map(e => (
+            <li><a href={`/${project}/places/${e.id}`}>{e.data.name}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {groups.length > 0 && (
+      <section class="tag-section">
+        <h2>Groups</h2>
+        <ul>
+          {groups.map(e => (
+            <li><a href={`/${project}/groups/${e.id}`}>{e.data.name}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </main>
+</SiteLayout>

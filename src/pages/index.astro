@@ -1,0 +1,29 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { getPublisherConfig, getProjects } from '../utils/config.js';
+
+const publisher = getPublisherConfig();
+const projects = getProjects();
+
+const projectsLabel = publisher.projects_label ?? 'Stories';
+const aboutLabel = publisher.about_label ?? 'About the Author';
+---
+
+<SiteLayout title={publisher.name}>
+  <div class="publisher-landing">
+
+    <h1>{publisher.name}</h1>
+    {publisher.tagline && <p class="publisher-tagline">{publisher.tagline}</p>}
+    {publisher.storefront_blurb && <div class="publisher-blurb">{publisher.storefront_blurb}</div>}
+
+    <div class="publisher-nav">
+      <a href="/projects" class="publisher-nav-card">
+        <span class="publisher-nav-card-label">{projectsLabel}</span>
+      </a>
+      <a href="/about" class="publisher-nav-card">
+        <span class="publisher-nav-card-label">{aboutLabel}</span>
+      </a>
+    </div>
+
+  </div>
+</SiteLayout>

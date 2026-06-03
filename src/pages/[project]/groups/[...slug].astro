@@ -1,0 +1,168 @@
+---
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import { readFileSync } from 'fs';
+import { getProjects, getProjectConfig } from '../../../utils/config.js';
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import { slugify } from '../../../utils/config.js';
+
+export async function getStaticPaths() {
+  const groups = await getCollection('groups');
+  const projects = getProjects();
+  const paths = [];
+  for (const project of projects) {
+    groups.forEach(group => {
+      paths.push({
+        params: { project: project.slug, slug: group.id },
+        props: { group },
+      });
+    });
+  }
+  return paths;
+}
+
+const { project } = Astro.params;
+const { group } = Astro.props;
+const { Content } = await render(group);
+const projectConfig = await getProjectConfig(project);
+
+const relationships = JSON.parse(
+  readFileSync('./src/data/relationships.json', 'utf-8')
+);
+const entityIndex = JSON.parse(
+  readFileSync('./src/data/entities.json', 'utf-8')
+);
+const members = relationships.groupMembers[group.id] || [];
+const groupRels = relationships.groupRelationships[group.id] || { opposed_to: [], allied_with: [] };
+const mentionedIn = relationships.mentionedIn[group.id] || [];
+const mentionedInOnly = mentionedIn.filter(
+  m => !members.some(a => a.slug === m.slug)
+);
+
+const allImages = import.meta.glob('/src/content/groups/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const groupImage = group.data.image
+  ? allImages[`/src/content/groups/${group.id}/${group.data.image}`]?.default
+  : null;
+---
+
+<SiteLayout
+  title={`${group.data.name} — ${projectConfig.title}`}
+  backLink={`/${project}/groups`}
+  backLabel="Groups"
+>
+  <main class="entity-page">
+    <h1>{group.data.name}</h1>
+
+    <div class="entity-meta">
+      {group.data.full_name && (
+        <p><strong>Full name:</strong> {group.data.full_name}</p>
+      )}
+      {group.data.subtype && (
+        <p><strong>Type:</strong> {group.data.subtype}</p>
+      )}
+      {group.data.function && (
+        <p><strong>Function:</strong> {group.data.function}</p>
+      )}
+      {group.data.status && (
+        <p><strong>Status:</strong> {group.data.status}</p>
+      )}
+      {group.data.headquarters && (
+        <p><strong>Headquarters:</strong> {group.data.headquarters}</p>
+      )}
+      {group.data.leader && (
+        <p><strong>Leader:</strong> {group.data.leader}</p>
+      )}
+      {group.data.aliases && group.data.aliases.length > 0 && (
+        <p><strong>Also known as:</strong> {group.data.aliases.join(', ')}</p>
+      )}
+    </div>
+
+    {groupImage && (
+      <div class="entity-portrait">
+        <Image
+          src={groupImage}
+          alt={group.data.image_alt ?? ''}
+          width={400}
+          height={400}
+        />
+      </div>
+    )}
+
+    <div class="entity-prose">
+      <Content />
+    </div>
+
+    {members.length > 0 && (
+      <div class="entity-appearances">
+        <h2>Members</h2>
+        <ul>
+          {members.map(member => (
+            <li>
+              <a href={`/${project}/characters/${member.slug}`}>
+                {member.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {groupRels.opposed_to.length > 0 && (
+      <div class="entity-appearances">
+        <h2>Opposed To</h2>
+        <ul>
+          {groupRels.opposed_to.map(slug => (
+            <li>
+              <a href={`/${project}/groups/${slug}`}>
+                {entityIndex[slug]?.name || slug}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {groupRels.allied_with.length > 0 && (
+      <div class="entity-appearances">
+        <h2>Allied With</h2>
+        <ul>
+          {groupRels.allied_with.map(slug => (
+            <li>
+              <a href={`/${project}/groups/${slug}`}>
+                {entityIndex[slug]?.name || slug}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {mentionedInOnly.length > 0 && (
+      <div class="entity-appearances">
+        <h2>Mentioned In</h2>
+        <ul>
+          {mentionedInOnly.map(scene => (
+            <li>
+              <a href={`/${project}/stories/${scene.storySlug}/scenes/${scene.slug}`}>
+                {scene.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {group.data.tags && group.data.tags.length > 0 && (
+      <div class="entity-tags">
+        <h2>Tags</h2>
+        <ul>
+          {group.data.tags.map(tag => (
+            <li class="tag">
+              <a href={`/${project}/tags/${slugify(tag)}`}>{tag}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </main>
+</SiteLayout>

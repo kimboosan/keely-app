@@ -1,0 +1,233 @@
+---
+import { getCollection, render } from 'astro:content';
+import { readFileSync } from 'fs';
+import { marked } from 'marked';
+import { getStoryConfig, getProjects, getStoriesForProject } from '../../../../../utils/config.js';
+import NavPanel from '../../../../../components/NavPanel.astro';
+import BaseLayout from '../../../../../layouts/BaseLayout.astro';
+import ContentWarnings from '../../../../../components/ContentWarnings.astro';
+
+export async function getStaticPaths() {
+  const scenes = await getCollection('scenes');
+  const projects = getProjects();
+  const paths = [];
+
+  const stripPrefix = (id) => id.replace(/^[^/]+\/scenes\//, '');
+
+  for (const project of projects) {
+    const stories = getStoriesForProject(project.slug);
+    for (const story of stories) {
+      const storyConfig = getStoryConfig(project.slug, story.slug);
+
+      const sorted = scenes
+        .filter(s => s.id.startsWith(`${story.slug}/`))
+        .sort((a, b) => a.id < b.id ? -1 : 1);
+
+      // Build hierarchy from nested ids
+      const hierarchy = [];
+      for (const [index, scene] of sorted.entries()) {
+        const parts = stripPrefix(scene.id).split('/');
+        const sceneNumber = index + 1;
+
+        if (parts.length === 1) {
+          hierarchy.push({ type: 'scene', scene, sceneNumber });
+        } else if (parts.length === 2) {
+          const chapterSlug = parts[0];
+          let chapter = hierarchy.find(n => n.type === 'chapter' && n.slug === chapterSlug);
+          if (!chapter) {
+            chapter = { type: 'chapter', slug: chapterSlug, label: chapterSlug.replace(/^chapter-(\d+)-(.+)$/, (_, num, rest) => `Chapter ${num}: ${rest.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}`), scenes: [] };
+            hierarchy.push(chapter);
+          }
+          chapter.scenes.push({ scene, sceneNumber });
+        } else {
+          const arcSlug = parts[0];
+          const chapterSlug = parts[1];
+          let arc = hierarchy.find(n => n.type === 'arc' && n.slug === arcSlug);
+          if (!arc) {
+            arc = { type: 'arc', slug: arcSlug, label: arcSlug.replace(/^arc-(\d+)-(.+)$/, (_, num, rest) => `Arc ${num}: ${rest.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}`), chapters: [] };
+            hierarchy.push(arc);
+          }
+          let chapter = arc.chapters.find(c => c.slug === chapterSlug);
+          if (!chapter) {
+            chapter = { type: 'chapter', slug: chapterSlug, label: chapterSlug.replace(/^chapter-(\d+)-(.+)$/, (_, num, rest) => `Chapter ${num}: ${rest.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}`), scenes: [] };
+            arc.chapters.push(chapter);
+          }
+          chapter.scenes.push({ scene, sceneNumber });
+        }
+      }
+
+      sorted.forEach((scene, index) => {
+        paths.push({
+          params: {
+            project: project.slug,
+            story: story.slug,
+            slug: scene.id.split('/').pop()
+          },
+          props: {
+            scene,
+            sceneNumber: index + 1,
+            prevScene: index > 0 ? sorted[index - 1] : null,
+            prevSceneNumber: index > 0 ? index : null,
+            nextScene: index < sorted.length - 1 ? sorted[index + 1] : null,
+            nextSceneNumber: index < sorted.length - 1 ? index + 2 : null,
+            storySlug: story.slug,
+            projectSlug: project.slug,
+            hierarchy,
+            storyConfig,
+            sceneIndex: sorted.map((s, i) => ({
+              id: s.id.split('/').pop(),
+              title: s.data.title,
+              number: i + 1,
+              pov: s.data.pov_character ?? null,
+              threads: s.data.threads ?? [],
+            })),
+          },
+        });
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { scene, sceneNumber, prevScene, prevSceneNumber, nextScene, nextSceneNumber, storySlug, hierarchy, storyConfig, sceneIndex } = Astro.props;
+const { project } = Astro.params;
+
+const currentSceneSlug = scene.id.split('/').pop();
+const prevSlug = prevScene ? prevScene.id.split('/').pop() : null;
+const nextSlug = nextScene ? nextScene.id.split('/').pop() : null;
+
+const characters = await getCollection('characters');
+const povCharacter = scene.data.pov_character
+  ? characters.find(c => c.id === scene.data.pov_character)
+  : null;
+const places = await getCollection('places');
+const sceneLocation = scene.data.scene_location
+  ? places.find(p => p.id === scene.data.scene_location)
+  : null;
+const sceneCharacters = scene.data.characters_in_scene
+  ? characters.filter(c => scene.data.characters_in_scene.includes(c.id))
+  : [];
+
+const entityIndex = JSON.parse(
+  readFileSync('./src/data/entities.json', 'utf-8')
+);
+
+const sceneFolderPrefix = scene.id.replace(/\/index\.md$/, '');
+
+const rawBody = scene.body;
+
+const resolvedBody = rawBody
+  .replace(/\[\[image:([^\]|]+)\|?([^\]]*)\]\]/g, (match, filename, alt) => {
+    const src = `/scenes/${sceneFolderPrefix}/${filename.trim()}`;
+    const altText = alt.trim() || filename.trim();
+    return `<img src="${src}" alt="${altText}" class="scene-inline-image" loading="lazy">`;
+  })
+  .replace(/\[\[([^\]]+)\]\]/g, (match, inner) => {
+      const [slug, alias] = inner.split('|').map(s => s.trim());
+      const entity = entityIndex[slug];
+      const displayName = alias ?? (entity ? (entity.short_name ?? entity.name) : slug);
+      const href = entity ? `/${project}/${entity.urlPrefix}/${slug}` : `/entities/${slug}`;
+      return `<a href="${href}" class="wiki-link" data-entity="${slug}">${displayName}</a>`;
+    });
+
+const renderedBody = marked(resolvedBody);
+---
+
+<BaseLayout 
+  title={`${scene.data.title} — ${storyConfig.title}`}
+  projectSlug={project}
+  storySlug={storySlug}
+  sidebarCollapsed={storyConfig.reader_defaults?.sidebar_collapsed ?? false}
+>
+  <Fragment slot="prose">
+    <script is:inline define:vars={{ sceneIndex, currentSceneId: currentSceneSlug }}>
+      window.__KEELY_SCENE_INDEX__ = sceneIndex;
+      window.__KEELY_CURRENT_SCENE__ = currentSceneId;
+    </script>
+    <h1>{sceneNumber}. {scene.data.title}</h1>
+    <div class="scene-meta" data-scene-id={currentSceneSlug}>
+      {scene.data.summary && <p><strong>Summary:</strong> {scene.data.summary}</p>}
+      {povCharacter && <p><strong>POV:</strong> <a href={`/${project}/characters/${povCharacter.id}`} class="wiki-link" data-entity={povCharacter.id}>{povCharacter.data.name}</a></p>}
+      {sceneLocation && <p><strong>Location:</strong> <a href={`/${project}/places/${sceneLocation.id}`} class="wiki-link" data-entity={sceneLocation.id}>{sceneLocation.data.name}</a></p>}
+      {sceneCharacters.length > 0 && <p><strong>Characters:</strong> {sceneCharacters.map((c, i) => <><a href={`/${project}/characters/${c.id}`} class="wiki-link" data-entity={c.id}>{c.data.name}</a>{i < sceneCharacters.length - 1 ? ', ' : ''}</>)}</p>}
+      {scene.data.narrative_mode && <p><strong>Narrative mode:</strong> {scene.data.narrative_mode}</p>}
+      <div class="scene-filter">
+        <label for="throughline-select"><strong>Reading thread:</strong></label>
+        <select id="throughline-select">
+          <option value="linear">All Scenes</option>
+          {[...new Set(sceneIndex.filter(s => s.pov).map(s => s.pov))].map(pov => {
+            const char = characters.find(c => c.id === pov);
+            const label = char ? char.data.name : pov;
+            return <option value={`pov:${pov}`}>{label}'s POV</option>;
+          })}
+          {[...new Set(sceneIndex.flatMap(s => s.threads))].filter(Boolean).map(thread => (
+            <option value={`thread:${thread}`}>{thread}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+
+    {scene.data.authors_notes?.top && (
+      <aside class="scene-authors-note">
+        <strong>Author Note:</strong> <em>{scene.data.authors_notes.top}</em>
+      </aside>
+    )}
+
+    <ContentWarnings 
+      storyWarnings={storyConfig.content_warnings} 
+      sceneWarnings={scene.data.content_warnings} 
+    />
+    
+    <hr />
+
+    <div class="scene-prose">
+      <Fragment set:html={renderedBody} />
+
+    {scene.data.authors_notes?.bottom && (
+      <aside class="scene-authors-note scene-authors-note--bottom">
+        <strong>Author Note:</strong> <em>{scene.data.authors_notes.bottom}</em>
+      </aside>
+      )}
+    </div>
+
+    <nav 
+      style="display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ccc;"
+      data-completion-status={storyConfig.completion_status}>
+      {prevScene
+        ? <a href={`/${project}/stories/${storySlug}/scenes/${prevSlug}`}>&larr; {prevSceneNumber}. {prevScene.data.title}</a>
+        : <a href={`/${project}/stories/${storySlug}`}>&larr; Story Home</a>
+      }
+      {(nextScene !== null && nextScene !== undefined)
+        ? <a href={`/${project}/stories/${storySlug}/scenes/${nextSlug}`}>{nextSceneNumber}. {nextScene.data.title} &rarr;</a>
+        : <span style="color: #999;">To be continued...</span>
+      }
+    </nav>
+  </Fragment>
+
+  <Fragment slot="wiki">
+    <NavPanel
+      hierarchy={hierarchy}
+      currentSceneId={currentSceneSlug}
+      prevScene={prevScene}
+      prevSceneNumber={prevSceneNumber}
+      nextScene={nextScene}
+      nextSceneNumber={nextSceneNumber}
+      storySlug={storySlug}
+      projectSlug={project}
+    />
+    <div id="scene-info">
+      <h2>Scene Info</h2>
+      {povCharacter && <p><strong>POV:</strong> <a href={`/${project}/characters/${povCharacter.id}`}>{povCharacter.data.name}</a></p>}
+      {sceneLocation && <p><strong>Location:</strong> <a href={`/${project}/places/${sceneLocation.id}`}>{sceneLocation.data.name}</a></p>}
+      {sceneCharacters.length > 0 && <p><strong>Characters:</strong> {sceneCharacters.map((c, i) => <><a href={`/${project}/characters/${c.id}`}>{c.data.name}</a>{i < sceneCharacters.length - 1 ? ', ' : ''}</>)}</p>}
+      {scene.data.narrative_mode && <p><strong>Narrative mode:</strong> {scene.data.narrative_mode}</p>}
+    </div>
+    <div id="entity-content" style="display:none;"></div>
+    <div id="wiki-nav-controls" style="display:flex; justify-content:space-between; padding:1rem 0; border-top:1px solid #ccc; margin-top:1rem;">
+      <button id="back-btn" disabled>&larr; Back</button>
+      <button id="forward-btn" disabled>Forward &rarr;</button>
+    </div>
+  </Fragment>
+</BaseLayout>

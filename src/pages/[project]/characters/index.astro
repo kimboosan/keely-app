@@ -1,0 +1,58 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import { getCollection } from 'astro:content';
+import { getProjects, getProjectConfig } from '../../../utils/config.js';
+
+export async function getStaticPaths() {
+  const projects = getProjects();
+  return projects.map(project => ({ params: { project: project.slug } }));
+}
+
+const { project } = Astro.params;
+const projectConfig = await getProjectConfig(project);
+
+function getSortName(character) {
+  const { name, title } = character.data;
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) return words[0].toLowerCase();
+  return words[words.length - 1].toLowerCase();
+}
+
+function getDisplayName(character) {
+  const { name, title } = character.data;
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) {
+    return title ? `${name} (${title} ${name})` : name;
+  }
+  const surname = words[words.length - 1];
+  const given = words.slice(0, -1).join(' ');
+  return title ? `${surname}, ${title} ${given}` : `${surname}, ${given}`;
+}
+
+const allCharacters = (await getCollection('characters')).filter(e => e.data.project.includes(project));
+
+const sortedCharacters = [...allCharacters].sort((a, b) =>
+  getSortName(a).localeCompare(getSortName(b))
+);
+
+---
+
+<SiteLayout
+  title={`Characters — ${projectConfig.title}`}
+  backLink={`/${project}/wiki`}
+  backLabel="Wiki"
+>
+  <div class="entity-index">
+    <h1>Characters</h1>
+    <div class="entity-grid">
+      {sortedCharacters.map(character => (
+        <a class="entity-card" href={`/${project}/characters/${character.id}`}>
+          <div class="entity-card-name">{getDisplayName(character)}</div>
+          {character.data.occupation && (
+            <div class="entity-card-sub">{character.data.occupation}</div>
+          )}
+        </a>
+      ))}
+    </div>
+  </div>
+</SiteLayout>

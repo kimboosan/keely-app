@@ -1,0 +1,44 @@
+---
+import { getPublisherConfig } from '../utils/config.js';
+
+const publisher = getPublisherConfig();
+
+const {
+  title,
+  backLink = null,
+  backLabel = null,
+  showNavToggle = false,
+  showWikiToggle = false,
+  sidebarCollapsed = false,
+} = Astro.props;
+---
+
+<html data-sidebar-collapsed={sidebarCollapsed}>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{title}</title>
+    <link rel="stylesheet" href="/styles/reader.css" />
+  </head>
+  <body class="site-layout">
+    <header id="site-header">
+      <div id="header-left">
+        {backLink && backLabel
+          ? <a href={backLink}>← {backLabel}</a>
+          : <span></span>
+        }
+      </div>
+      <div id="header-center">
+        {showNavToggle && <button id="nav-toggle">Navigation</button>}
+        {showWikiToggle && <button id="wiki-header-btn">Wiki</button>}
+      </div>
+      <div id="header-right">
+        {publisher.logo
+          ? <a href="/"><img src={`/images/${publisher.logo}`} alt={publisher.name} id="header-logo" /></a>
+          : <a href="/" id="header-logo">{publisher.name}</a>
+        }
+      </div>
+    </header>
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,56 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import { getPublisherConfig, getAuthors } from '../../utils/config.js';
+import { marked } from 'marked';
+import { Image } from 'astro:assets';
+
+const publisher = getPublisherConfig();
+const authors = getAuthors();
+
+const allImages = import.meta.glob('/src/data/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+---
+
+<SiteLayout
+  title={`About — ${publisher.name}`}
+  backLink="/"
+  backLabel={publisher.name}
+>
+  <div class="about-page">
+
+    <h1>About</h1>
+
+    {authors.map(author => {
+      const bioHtml = author.bio ? marked(author.bio) : null;
+      const portrait = author.portrait
+        ? allImages[`/src/data/${author.portrait}`]?.default
+        : null;
+      return (
+        <div class="about-author">
+          <h2>{author.name}</h2>
+
+          {portrait && (
+            <div class="about-portrait">
+              <Image
+                src={portrait}
+                alt={`Portrait of ${author.name}`}
+                width={300}
+                height={300}
+              />
+            </div>
+          )}
+
+          {bioHtml && <div class="about-bio" set:html={bioHtml} />}
+
+          {author.links?.length > 0 && (
+            <ul class="about-links">
+              {author.links.map(link => (
+                <li><a href={link.url} rel="external">{link.label}</a></li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    })}
+
+  </div>
+</SiteLayout>
