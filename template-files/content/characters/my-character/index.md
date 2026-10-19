@@ -1,16 +1,12 @@
 ---
 # index.md — Character file
 # ==========================
-# Lives at: projects/my-project/characters/my-character/index.md
+# Lives at: src/content/characters/my-character/index.md
 # The folder name is the character's slug and becomes their URL.
 #
-# Required fields: name, type.
+# Required fields: name, type, project.
 # Everything else is optional — omit any field you don't need and
 # it will not appear on the page.
-#
-# NOTE (Phase 1): In the current Astro-based setup, this file lives at
-# src/data/projects/my-project/characters/my-character/index.md
-# Phase 2 will move it to your content folder root.
 # -----------------------------------------------------------------------
 
 
@@ -39,19 +35,19 @@ type: character
 # Your own free-form category for this character within the story.
 # Examples: crew, antagonist, love-interest, minor, suspect
 # If omitted, no subtype appears.
-subtype: ""
+# subtype: ""
 
 # Rendering weight — controls visual prominence in listings.
 # Controlled vocabulary — choose one:
 #   main | secondary | minor | background
 # If omitted, defaults to "minor".
-# See REFERENCE.md for how role affects rendering.
+# See docs/REFERENCE.md for how role affects rendering.
 role: "minor"
 
 # Narrative function — free-form, for your own reference.
 # Examples: protagonist, antagonist, mentor, comic-relief, foil
 # If omitted, no function appears on the page.
-function: ""
+# function: ""
 
 
 # -----------------------------------------------------------------------
@@ -59,13 +55,13 @@ function: ""
 # -----------------------------------------------------------------------
 
 # Age — a number or a string ("mid-thirties", "unknown"). Optional.
-age: ""
+# age: ""
 
 # Job title or occupation. Optional.
-occupation: ""
+# occupation: ""
 
 # Formal title (Captain, Dr., etc.). Optional.
-title: ""
+# title: ""
 
 # Physical description. Supports plain text or multi-line block (use >).
 # If omitted, no appearance section appears.
@@ -86,8 +82,8 @@ appearance: >
 # gallery      — additional images. Each needs a filename, alt text, and
 #                optional caption. If omitted, no gallery appears.
 
-portrait: ""
-portrait_alt: ""
+# portrait: ""
+# portrait_alt: ""
 gallery: []
 
 # Gallery example — uncomment and duplicate for each additional image:

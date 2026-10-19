@@ -1,16 +1,12 @@
 ---
 # index.md — Place file
 # =====================
-# Lives at: projects/my-project/places/my-place/index.md
+# Lives at: src/content/places/my-place/index.md
 # The folder name is the place's slug and becomes their URL.
 #
-# Required fields: name, type.
+# Required fields: name, type, project.
 # Everything else is optional — omit any field you don't need and
 # it will not appear on the page.
-#
-# NOTE (Phase 1): In the current Astro-based setup, this file lives at
-# src/data/projects/my-project/places/my-place/index.md
-# Phase 2 will move it to your content folder root.
 # -----------------------------------------------------------------------
 
 
@@ -39,22 +35,22 @@ type: place
 # Your own free-form category for this place within the story.
 # Examples: facility, city, planet, region, vehicle, building
 # If omitted, no subtype appears.
-subtype: ""
+# subtype: ""
 
 # Rendering weight — controls visual prominence in listings.
 # Controlled vocabulary — choose one:
 #   primary | secondary | minor | background
 # If omitted, defaults to "minor".
-# See REFERENCE.md for how scope affects rendering.
+# See docs/REFERENCE.md for how scope affects rendering.
 scope: "minor"
 
 # Size descriptor. Optional, free-form.
 # Examples: vast, medium, small, cramped, planetary
-size: ""
+# size: ""
 
 # Current state of the place. Optional, free-form.
 # Examples: active, abandoned, destroyed, contested, failing
-status: ""
+# status: ""
 
 
 # -----------------------------------------------------------------------
@@ -69,12 +65,12 @@ location: >
 
 # The group that runs or owns this place. Use wiki-link format: "[[group-slug]]"
 # If omitted, no operator appears.
-operator: ""
+# operator: ""
 
 # The larger place this place is contained within.
 # Use wiki-link format: "[[place-slug]]"
 # If omitted, no parent place appears.
-parent_place: ""
+# parent_place: ""
 
 # Places contained within this place.
 # Use wiki-link format for each: "[[place-slug]]"
@@ -98,8 +94,8 @@ contains:
 # gallery   — additional images. Each needs a filename, alt text, and
 #             optional caption. If omitted, no gallery appears.
 
-image: ""
-image_alt: ""
+# image: ""
+# image_alt: ""
 gallery: []
 
 # Gallery example — uncomment and duplicate for each additional image:

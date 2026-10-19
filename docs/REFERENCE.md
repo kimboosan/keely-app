@@ -71,25 +71,36 @@ filtering, and display. Use values exactly as written — spelling and
 capitalization matter.
 
 ### Genre
-Choose exactly one per project or story.
+Choose exactly one per project or story. These come from `src/data/genres.json`; a value that isn't on this list stops the build.
 
-| Value | Notes |
-|---|---|
-| Science Fiction | |
-| Fantasy | |
-| Romance | |
-| Mystery | |
-| Thriller | |
-| Horror | |
-| Historical Fiction | |
-| Alternative History | |
-| Literary Fiction | |
-| Western | |
-| Action and Adventure | |
-| LitRPG | |
-| Non-Fiction | |
-| Memoir | |
-| Fan Fiction | |
+| Value |
+|---|
+| Action & Adventure |
+| Coming of Age |
+| Contemporary Fiction |
+| Crime |
+| Drama |
+| Dystopian |
+| Erotica |
+| Fairy Tale & Folklore |
+| Family Life |
+| Fantasy |
+| General Fiction |
+| Historical Fiction |
+| Horror |
+| Humor |
+| LGBTQ+ |
+| Literary Fiction |
+| Mystery & Detective |
+| Paranormal |
+| Poetry |
+| Romance |
+| Science Fiction |
+| Short Stories |
+| Thriller & Suspense |
+| War & Military |
+| Western |
+| Women's Fiction |
 
 Use `subgenre` (free-form) for niche descriptors like "cozy", "sapphic",
 "grimdark", or "solarpunk".
@@ -132,26 +143,27 @@ not an oversight. Readers rely on this signal.
 ### Content Warnings — Additional Vocabulary
 Use zero or more of these in `content_warnings.additional` at story or
 scene level. Scene-level warnings are additive — they layer on top of
-story-level warnings, never replace them.
+story-level warnings, never replace them. These come from
+`src/data/warnings-vocabulary.json`.
 
-| Value | Notes |
+| Value | Meaning |
 |---|---|
-| `suicide-and-self-harm` | |
-| `abuse` | Physical, emotional, or psychological |
-| `addiction` | |
-| `grief-and-loss` | |
-| `mental-illness` | |
-| `child-harm` | |
-| `animal-harm` | |
-| `body-horror` | |
-| `torture` | |
-| `war-and-combat` | |
-| `racism-and-discrimination` | Depicted in story content |
-| `sexual-violence` | More specific than non-consent |
-| `eating-disorders` | |
-| `pregnancy-and-birth` | Including loss |
-| `medical` | Surgery, illness, medical procedures |
-| `phobias` | Spiders, heights, confined spaces, etc. — use `custom` to specify |
+| `grief` | Grief |
+| `death` | Death |
+| `dying` | Dying |
+| `medical-content` | Medical content |
+| `mental-health` | Mental health |
+| `abuse` | Abuse |
+| `alcohol-drugs` | Alcohol/drugs |
+| `strong-language` | Strong language |
+| `sexual-references` | Sexual references |
+| `body-horror` | Body horror |
+| `trauma` | Trauma |
+| `self-harm` | Self-harm |
+| `racism` | racist language and behaviors represented |
+| `misogyny` | hatred of women in language and behavior |
+| `queerphobia` | hatred of LGBTQ+ language and behavior |
+| `transphobia` | hatred of trans individuals represented in language and behavior |
 
 For anything not on this list, use `content_warnings.custom` with your
 own free-form text.
@@ -232,6 +244,17 @@ If omitted, no size is displayed.
 
 ---
 
+### Group Scope
+Optional. How far a group's influence reaches.
+
+| Value |
+|---|
+| `minor` |
+| `major` |
+| `dominant` |
+
+---
+
 ## Field Quick Reference
 
 ### publisher.toml
@@ -239,11 +262,10 @@ If omitted, no size is displayed.
 |---|---|---|
 | `name` | Yes | Display name or press name |
 | `tagline` | No | One-liner for the storefront |
-| `logo` | No | Filename relative to src/data/ |
+| `logo` | No | Filename of an image in the generator's `public/images/` folder |
 | `storefront_blurb` | No | Markdown welcome text |
 | `projects_label` | No | Defaults to "Stories" |
 | `about_label` | No | Defaults to "About the Author" |
-| `required_warnings` | No | Defaults to true |
 
 ### authors.toml
 | Field | Required? | Notes |
@@ -375,8 +397,8 @@ If omitted, no size is displayed.
 | `summary` | No | Plain text only |
 | `content_warnings.additional` | No | Additive; layered onto story warnings |
 | `content_warnings.custom` | No | Free-form |
-| `authors_notes.top` | No | Markdown; wiki-links allowed |
-| `authors_notes.bottom` | No | Markdown; wiki-links allowed |
+| `authors_notes.top` | No | Plain text (markdown and wiki-links not converted) |
+| `authors_notes.bottom` | No | Plain text (markdown and wiki-links not converted) |
 | `pov_character` | No | Wiki-link; omit for omniscient/ensemble |
 | `characters_in_scene` | No | List of wiki-links; drives character backlinks |
 | `scene_location` | No | Wiki-link; drives place backlinks |
@@ -391,7 +413,7 @@ If omitted, no size is displayed.
 ## Wiki-Link Syntax
 
 Wiki-links connect your prose and entity pages to each other. The slug
-is always the entity's folder name.
+is always the folder name of what you're linking to.
 
 **Basic link:**
 ```
@@ -406,15 +428,66 @@ is always the entity's folder name.
 ```
 Displays "Angie" but links to Angie's character page.
 
-**Auto-linking** — if an entity has values in its `aliases` field, the
-generator can recognize those names in scene prose and link them
-automatically, without explicit `[[]]` markup. This is an opt-in setting
-in `project.toml`.
+**Links to other scenes** — in scene prose, link to another scene in the
+same story by its folder name:
+```
+[[03-the-fax]]
+[[03-the-fax|that morning]]
+```
+Shows the scene's title (or your display text) and links to that scene.
+Scene folder names are only unique within a story, so scene links can't
+reach other stories.
+
+**Inline images** — in scene prose, show an image stored in the scene's
+folder:
+```
+[[image:evacuation-notice.png|Alt text describing the image]]
+```
+
+**Links that don't resolve** — a `[[slug]]` that matches no entity or
+scene is still rendered as a link, but leads nowhere. Check the slug
+against the folder name.
+
+**Aliases** — an entity's `aliases` are shown on its page as other names
+it goes by. They don't create links on their own: every link needs
+`[[]]` markup.
 
 **Resolving slugs** — the slug is always the folder name, regardless of
 the entity's display name. If your character folder is named
 `angie-mcdonnell`, the link is `[[angie-mcdonnell]]` even if her
 display name is "Angela McDonnell".
+
+---
+
+## Where Things Live
+
+```
+src/
+  content/                      ← your writing, organized by type
+    characters/<slug>/index.md  (+ the entity's images)
+    places/<slug>/index.md
+    groups/<slug>/index.md
+    <custom-type>/<slug>/index.md
+    stories/<story>/scenes/     ← scenes, optionally in arc/chapter folders
+  data/                         ← your settings
+    publisher.toml
+    authors.toml                (+ author portraits)
+    genres.json, ratings.json, warnings-vocabulary.json
+    projects/<project>/
+      project.toml              (+ project cover and banner images)
+      stories/<story>/
+        story.toml              (+ story cover and banner images)
+```
+
+- An entity joins a project through its `project` field, not its folder.
+- A story's folder name must match under `content/stories/` and
+  `data/projects/<project>/stories/`.
+- Back up `src/content/` and `src/data/` — together they are all of your
+  work. Everything else is the generator, or files it computes.
+- **Advanced:** to keep your content outside the generator's folder, set
+  the `KEELY_VAULT` environment variable to the folder that contains your
+  `src/content/` and `src/data/`, e.g.
+  `KEELY_VAULT=~/writing/my-keely-site npm run dev`.
 
 ---
 
@@ -437,9 +510,12 @@ The generator reads folders alphanumerically, so `01-` always comes
 before `02-`. Use zero-padded numbers so ordering stays correct beyond
 nine scenes (`01-` through `09-`, then `10-`).
 
-To insert a scene between existing scenes, rename the affected folder
-prefixes. The Phase 2 editor app handles reordering by drag-and-drop
-with automatic renumbering.
+To insert a scene between existing scenes, give it a temporary prefix
+that sorts where you want it, then renumber the story:
+```
+npm run renumber -- my-story            # dry run
+npm run renumber -- my-story --apply    # renames folders, updates [[links]]
+```
 
 ### Container folders (arcs and chapters)
 Stories can be flat (scenes only) or nested (scenes grouped into
@@ -461,7 +537,7 @@ scenes/
     01-the-order/
     02-peters-office/
   chapter-02-breakdown/
-    01-vodka-and-theories/
+    03-vodka-and-theories/
 ```
 
 **Arcs and chapters:**
@@ -472,22 +548,21 @@ scenes/
       01-the-order/
       02-peters-office/
     chapter-02-breakdown/
-      01-vodka-and-theories/
+      03-vodka-and-theories/
 ```
+
+Scene numbers run straight through the whole story; they don't restart
+in each chapter or arc.
 
 Container folders do not contain an `index.md` — that file is what
 identifies a folder as a scene. Any folder without `index.md` is
 treated as a container.
 
-### Container titles (`_meta.toml`)
-Each container folder can optionally include a `_meta.toml` file to
-set a display title:
-```toml
-title = "The Evacuation Order"
-```
-If `_meta.toml` is absent, the generator humanizes the folder name
-(e.g. `chapter-01-the-evacuation-order` becomes
-"Chapter 01: The Evacuation Order").
+### Container titles
+The reader site names containers from their folder names:
+`chapter-01-the-evacuation-order` becomes
+"Chapter 01: The Evacuation Order", and `arc-01-setup` becomes
+"Arc 01: Setup". Choose folder names that read well as titles.
 
 ---
 

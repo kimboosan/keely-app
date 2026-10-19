@@ -4,7 +4,7 @@
 
 Entities are the people, places, and groups that populate your story world. They are the backbone of Keely's wiki system — every character, location, and faction you create becomes a wiki page that readers can browse directly or access by clicking entity names in your scene prose.
 
-Keely has three built-in entity types: **characters**, **places**, and **groups**. Custom entity types (artifacts, magic systems, ships, etc.) can be declared in `project.toml` — see `docs/customization.md` for details.
+Keely has three built-in entity types: **characters**, **places**, and **groups**. Custom entity types (artifacts, magic systems, ships, etc.) can be declared in `project.toml` — see **Custom Entity Types** below.
 
 ### The folder-per-entity structure
 
@@ -12,20 +12,24 @@ Each entity lives in its own named folder containing a single `index.md` file. T
 makes co-location possible. An entity's images (portrait, gallery) live in the same folder as its `index.md`, keeping everything that
 belongs to a character together in one place. The folder name is the entity's slug, which becomes its URL.
 
+Entities are organized by type in `src/content/`, not by project. All your characters share `src/content/characters/`, whichever
+project they belong to; each entity's `project` field says which project(s) it's part of.
+
 ```
-characters/
-  angie-mcdonnell/
-    index.md
-    angie-portrait.jpg
-    angie-spacesuit.jpg
-places/
-  moon-base-delta/
-    index.md
-    delta-exterior.jpg
-groups/
-  mizmo/
-    index.md
-    mizmo-logo.png
+src/content/
+  characters/
+    angie-mcdonnell/
+      index.md
+      angie-portrait.jpg
+      angie-spacesuit.jpg
+  places/
+    moon-base-delta/
+      index.md
+      delta-exterior.jpg
+  groups/
+    mizmo/
+      index.md
+      mizmo-logo.png
 ```
 
 ### Computed fields
@@ -39,12 +43,12 @@ across your files. Keely reads your scene frontmatter and entity files and assem
 
 You never maintain these lists by hand. Add a character to a scene's frontmatter and they appear on the character's wiki page automatically at the next build.
 
-See `REFERENCE.md` for the full computed fields reference.
+See `docs/REFERENCE.md` for the full computed fields reference.
 
 ### Template files
 
-Every entity type has a fully annotated template file in `template-files/`. Copy the relevant template into your entity folder,
-rename it `index.md`, and fill in the fields. Every field is explained inline in the template.
+Every entity type has a fully annotated template file in `template-files/content/` (e.g. `template-files/content/characters/my-character/index.md`).
+Copy the relevant template into your entity folder and fill in the fields. Every field is explained inline in the template.
 
 ---
 
@@ -199,28 +203,53 @@ to a place. A place's history can link to a group. A group's profile can link to
 When readers click a wiki-link in entity prose while reading, the linked entity loads in the wiki sidebar without leaving the current
 page. Wiki-links in entity prose work the same way as wiki-links in scene prose.
 
-See `REFERENCE.md` for the full wiki-link syntax reference.
+See `docs/REFERENCE.md` for the full wiki-link syntax reference.
+
+---
+
+## Spoiler Sections
+
+An entity's description is often where secrets pile up: who a character really is, what happens to a place. To keep those from
+readers who haven't got that far, give that part of the description its own heading named **Spoilers**:
+
+```markdown
+## Spoilers
+
+Li was the station's original saboteur.
+```
+
+On the reader site, a `## Spoilers` section is collapsed behind a click-to-reveal and moved to the end of the page, wherever you put it
+in the file. The heading must be exactly "Spoilers" (capitalization doesn't matter).
+
+---
+
+## Custom Entity Types
+
+Beyond characters, places, and groups, you can declare your own entity types — artifacts, ships, magic systems, whatever your world
+needs:
+
+1. Create a folder for the type in `src/content/`, e.g. `src/content/artifacts/`.
+2. Declare it in your `project.toml` with an `[[entity_types]]` entry (`name = "artifacts"`, plus singular/plural labels and an
+   optional color). The project template explains every option.
+3. Add entities inside it the same way as any other type: one folder per entity, each with an `index.md` whose `project` field names
+   your project.
+
+**Current limitation:** custom entity types are indexed and can be wiki-linked, but they don't get their own reader pages yet, so a
+link to one won't lead anywhere on your published site. Reader pages for custom types are planned.
 
 ---
 
 ## The Entity Index
 
-Keely maintains an index of all your entities at build time to power wiki-link resolution in scene prose and entity cross-references. When you add new entities or rename existing ones, you need to rebuild this index before the changes take effect:
-
-```bash
-node src/scripts/build-entity-index.mjs
-```
-
-Run this from your project root. You only need to run it when you add or rename entities — not every time you edit their content. The
-terminal will confirm when the index has been rebuilt.
-
-The Phase 2 editor app will handle this automatically whenever you create or rename an entity.
+Keely keeps an index of all your entities to power wiki-link resolution in scene prose and entity cross-references. `npm run dev` and
+`npm run build` rebuild it every time they start, so normally there's nothing to do. If you add or rename an entity while the dev server
+is running, stop it (`Ctrl+C`) and start it again so new links resolve. `npm run index` rebuilds the index on its own.
 
 ---
 
 ## Next Steps
 
-Your entities are set up and indexed. From here:
+Your entities are set up. From here:
 
 **→ `docs/03_images.md`** — add portraits, place images, and cover art to your entities and project pages.
 

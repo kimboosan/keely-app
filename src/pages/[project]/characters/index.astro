@@ -11,22 +11,21 @@ export async function getStaticPaths() {
 const { project } = Astro.params;
 const projectConfig = await getProjectConfig(project);
 
+// D-120: surname is explicit, never guessed from `name` — the previous
+// last-word-is-surname heuristic broke on real content (family-name-first
+// characters, and names already hand-formatted "Surname, Given"). Absent
+// surname falls back to `name` as-is, no inversion attempted.
 function getSortName(character) {
-  const { name, title } = character.data;
-  const words = name.trim().split(/\s+/);
-  if (words.length === 1) return words[0].toLowerCase();
-  return words[words.length - 1].toLowerCase();
+  const { name, surname } = character.data;
+  if (surname && surname.trim()) return surname.trim().toLowerCase();
+  return name.trim().toLowerCase();
 }
 
 function getDisplayName(character) {
-  const { name, title } = character.data;
-  const words = name.trim().split(/\s+/);
-  if (words.length === 1) {
-    return title ? `${name} (${title} ${name})` : name;
-  }
-  const surname = words[words.length - 1];
-  const given = words.slice(0, -1).join(' ');
-  return title ? `${surname}, ${title} ${given}` : `${surname}, ${given}`;
+  const { name, surname, given_names, title } = character.data;
+  if (!surname || !surname.trim()) return name;
+  const rest = (given_names && given_names.trim()) || name;
+  return title ? `${surname}, ${title} ${rest}` : `${surname}, ${rest}`;
 }
 
 const allCharacters = (await getCollection('characters')).filter(e => e.data.project.includes(project));

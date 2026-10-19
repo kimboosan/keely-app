@@ -1,5 +1,6 @@
 ---
 import { getPublisherConfig } from '../utils/config.js';
+import PreviewMode from '../components/PreviewMode.astro';
 
 const publisher = getPublisherConfig();
 
@@ -19,6 +20,7 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{title}</title>
     <link rel="stylesheet" href="/styles/reader.css" />
+    {import.meta.env.DEV && <PreviewMode />}
   </head>
   <body class="site-layout">
     <header id="site-header">
@@ -37,8 +39,29 @@ const {
           ? <a href="/"><img src={`/images/${publisher.logo}`} alt={publisher.name} id="header-logo" /></a>
           : <a href="/" id="header-logo">{publisher.name}</a>
         }
+        <button id="reader-prefs-btn" aria-label="Reader preferences" title="Reader preferences">⚙</button>
       </div>
     </header>
+
+    <div id="reader-prefs-modal" hidden>
+      <div id="reader-prefs-panel">
+        <h2>Reader Preferences</h2>
+        <label>
+          <input type="checkbox" id="pref-hide-warnings" />
+          Hide all content warnings
+        </label>
+        <label>
+          <input type="checkbox" id="pref-hide-notes" />
+          Hide all author notes
+        </label>
+        <label>
+          <input type="checkbox" id="pref-wiki-collapsed" />
+          Collapse wiki pane by default
+        </label>
+        <button id="reader-prefs-close">Close</button>
+      </div>
+    </div>
+
     <slot />
   </body>
 </html>

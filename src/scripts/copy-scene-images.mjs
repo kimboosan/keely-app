@@ -1,8 +1,9 @@
+import { CONTENT } from '../utils/vault.mjs';
 import { readdirSync, copyFileSync, mkdirSync, existsSync } from 'fs';
 import { join, extname } from 'path';
 
 const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg']);
-const SCENES_SRC = './src/content/stories';
+const SCENES_SRC = `${CONTENT}/stories`;
 const SCENES_DEST = './public/scenes';
 
 function copySceneImages(srcDir, destDir, relativePath = '') {

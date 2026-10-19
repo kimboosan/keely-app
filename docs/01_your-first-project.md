@@ -22,6 +22,15 @@ writing, it's probably markdown.
 All template files — with every field annotated inline — live in the `template-files/` folder. Copy from there whenever you're creating
 something new.
 
+### Where your files live
+
+Everything you write lives in two folders:
+
+- **`src/content/`** — your writing, organized by type: `characters/`, `places/`, `groups/`, any custom entity types, and `stories/` for scenes.
+- **`src/data/`** — your settings: `publisher.toml`, `authors.toml`, and `projects/`, which holds each project's `project.toml` and each story's `story.toml`.
+
+If you followed `INSTALL.md`, the starter site is already in both. This guide walks through each piece so you can make it your own.
+
 ---
 
 ## Setting Up Your Publisher Identity
@@ -29,7 +38,7 @@ something new.
 Your publisher identity is the topmost layer of your Keely site — it's what readers see on your storefront home page and your about
 page. It represents you, your press, or your pen name.
 
-Two files drive this: `publisher.toml` and `authors.toml`. In Phase 1 these live at `src/data/publisher.toml` and `src/data/authors.toml`.
+Two files drive this: `src/data/publisher.toml` and `src/data/authors.toml`.
 
 ### publisher.toml
 
@@ -83,8 +92,8 @@ landing page, its own entity wiki, and its own storefront card.
 
 ### Create the project folder
 
-Inside `src/data/projects/`, create a new folder for your project. The folder name becomes your project's URL slug — use lowercase
-letters and hyphens, no spaces:
+Inside `src/data/projects/`, create a folder for your project (or rename the starter's `my-project/`). The folder name becomes your
+project's URL slug — use lowercase letters and hyphens, no spaces:
 
 ```
 src/data/projects/my-project-name/
@@ -94,17 +103,17 @@ Choose a slug you won't want to change later. It appears in every URL on your si
 
 ### Copy and fill in project.toml
 
-Copy `template-files/projects/my-project/project.toml` into your new project folder. Open it and fill in the fields.
+Copy `template-files/data/projects/my-project/project.toml` into your new project folder. Open it and fill in the fields.
 
 Required fields:
 - `title` — your project's display title
-- `genre` — choose one from the controlled vocabulary (see `REFERENCE.md`)
-- `rating` — choose one from the controlled vocabulary (see `REFERENCE.md`)
+- `genre` — choose one from the controlled vocabulary (see `docs/REFERENCE.md`)
+- `rating` — choose one from the controlled vocabulary (see `docs/REFERENCE.md`)
 - `author.name` — your name as it appears on this project
 - `license.code` and `license.content` — how your work is licensed
 
-Everything else is optional. The build will warn you in the terminal if any required field is missing — it won't fail, but it will tell
-you what needs attention.
+Everything else is optional. A missing or unrecognized `genre` stops the build with a message naming the file; a missing or unrecognized
+`rating` is reported as a warning in the terminal.
 
 ### Customizing your project
 
@@ -112,21 +121,13 @@ Keely gives you control over how your reader site looks and behaves. The `[reade
 default behavior for content warning banners, author notes display, wiki sidebar state, and more. The `reader.css` file lets you
 customize colors, fonts, and layout to match your project's identity.
 
-These are entirely optional — Keely's defaults are designed to work well out of the box. See `docs/customization.md` for full details.
+These are entirely optional — Keely's defaults are designed to work well out of the box. See `docs/07_customization.md` for full details.
 
-### Create your entity folders
+### Your entity folders
 
-Inside your project folder, create the three default entity type folders:
-
-```
-src/data/projects/my-project-name/
-  project.toml
-  characters/
-  places/
-  groups/
-```
-
-You don't need to put anything in them yet — just create the folders. You'll add entities in a later step.
+Characters, places, and groups don't live in the project folder. They live by type in `src/content/` — `characters/`, `places/`,
+`groups/` — shared by all your projects, and each entity names the project(s) it belongs to in its own `project` field. You'll add
+entities in a later step.
 
 ---
 
@@ -136,21 +137,27 @@ A **story** is a single narrative work within your project. It has its own landi
 its own scenes. A project can contain as many stories as you need — one for each book in a series, one for each story in an anthology,
 or just one if you're publishing a single work.
 
-### Create the story folder
+### Create the story folders
 
-Inside your project folder, create a `stories/` folder, then a folder for your story inside that:
+A story has two folders with the same name: one in your project's settings for its `story.toml`, and one in `src/content/stories/` for
+its scenes:
 
 ```
 src/data/projects/my-project-name/
   stories/
     my-story-name/
+      story.toml
+
+src/content/stories/
+  my-story-name/
+    scenes/
 ```
 
-The folder name is the slug — lowercase and hyphens.
+The folder name is the story's slug — lowercase and hyphens — and must be the same in both places.
 
 ### Copy and fill in story.toml
 
-Copy `template-files/projects/my-project/stories/my-story/story.toml` into your story folder. Open it and fill in the fields.
+Copy `template-files/data/projects/my-project/stories/my-story/story.toml` into the story's settings folder. Open it and fill in the fields.
 
 Required fields:
 - `title` — your story's display title
@@ -160,11 +167,11 @@ Required fields:
 - `content_warnings.required` — a mandatory declaration (see below)
 
 **A note on content warnings:** every story must declare exactly one value in `content_warnings.required`. This is intentional — "no
-warnings apply" is a deliberate statement, not an oversight. Readers rely on this signal. Choose `no-warnings-apply` if nothing significant applies to your story. See `REFERENCE.md` for the full vocabulary.
+warnings apply" is a deliberate statement, not an oversight. Readers rely on this signal. Choose `no-warnings-apply` if nothing significant applies to your story. See `docs/REFERENCE.md` for the full vocabulary.
 
-### Create the scenes folder
+### The scenes folder
 
-Inside your story folder, create a `scenes/` folder. You'll add your first scene shortly.
+Scenes go in `src/content/stories/my-story-name/scenes/`. You'll add your first scene shortly.
 
 ### Flat vs. nested story structure
 
@@ -173,9 +180,8 @@ Stories can be organized in two ways — flat or nested. Choose whichever matche
 **Flat** — scenes only, no containers. Good for short works, novellas, or stories where you don't want visible chapter divisions:
 
 ```
-stories/
+src/content/stories/
   my-story/
-    story.toml
     scenes/
       01-the-order/
       02-peters-office/
@@ -185,9 +191,8 @@ stories/
 **Chapters only** — scenes grouped into chapters:
 
 ```
-stories/
+src/content/stories/
   my-story/
-    story.toml
     scenes/
       chapter-01-the-evacuation-order/
         01-the-order/
@@ -199,9 +204,8 @@ stories/
 **Arcs and chapters** — scenes grouped into chapters, chapters grouped into arcs. Good for longer works with distinct story phases:
 
 ```
-stories/
+src/content/stories/
   my-story/
-    story.toml
     scenes/
       arc-01-setup/
         chapter-01-the-evacuation-order/
@@ -212,9 +216,10 @@ stories/
 ```
 
 Container folders (arcs and chapters) don't contain an `index.md` — that file is what identifies a folder as a scene. Any folder without
-`index.md` is treated as a container. Each container can have an optional `_meta.toml` file to set a display title; if absent, the generator humanizes the folder name automatically.
+`index.md` is treated as a container. The reader site names containers from their folder names: `arc-01-setup` becomes "Arc 01: Setup"
+and `chapter-02-breakdown` becomes "Chapter 02: Breakdown".
 
-See `REFERENCE.md` for folder naming conventions and scene numbering details.
+See `docs/REFERENCE.md` for folder naming conventions and scene numbering details.
 
 ---
 
@@ -227,10 +232,10 @@ The folder name is the entity's slug and becomes its URL.
 
 ### Create an entity folder
 
-Inside the appropriate type folder, create a named folder and add your `index.md` inside it:
+Inside the appropriate type folder in `src/content/`, create a named folder and add your `index.md` inside it:
 
 ```
-characters/
+src/content/characters/
   angie-mcdonnell/
     index.md
     angie-portrait.jpg    ← images live here too
@@ -243,16 +248,16 @@ Copy the relevant template from `template-files/` into your entity folder, name 
 Required fields for all entities:
 - `name` — the entity's canonical display name
 - `type` — always `character`, `place`, or `group` (do not change)
-- `project` — list containing your project's slug
+- `project` — a list containing your project's slug (its folder name under `src/data/projects/`)
 
 Everything else is optional. Start with just a name and type if you want — you can fill in the rest as your story develops.
 
 **Short names matter:** the `short_name` field controls what appears in the wiki sidebar when readers click an entity link in your prose. If your character's canonical name is "Angela McDonnell" but everyone calls her "Angie", set `short_name: "Angie"`. If omitted, the full `name` is used everywhere.
 
 **Wiki-links:** entity files support wiki-links in their prose body using `[[entity-slug]]` syntax. A character's description can link
-to a place, a place's description can link to a group. See `REFERENCE.md` for full wiki-link syntax.
+to a place, a place's description can link to a group. See `docs/REFERENCE.md` for full wiki-link syntax.
 
-For full details on every entity field, see `docs/entities.md`.
+For full details on every entity field, see `docs/02_entities.md`.
 
 ---
 
@@ -270,16 +275,11 @@ npm run dev
 
 Then open the local address shown in your terminal.
 
-### Building the entity index
+### The entity index
 
-Keely maintains an index of all your entities to power wiki-link resolution in scene prose. When you add new entities, you need to
-rebuild this index before they'll appear in the wiki:
-
-```bash
-node src/scripts/build-entity-index.mjs
-```
-
-You only need to run this when you add or rename entities — not every time you edit their content. The Phase 2 editor app will handle this automatically.
+Keely keeps an index of all your entities to power wiki-link resolution in scene prose, plus the "appears in" and backlink lists. `npm run
+dev` and `npm run build` rebuild it every time they start, so there's normally nothing to do. If you add or rename an entity while the dev
+server is running, stop it (`Ctrl+C`) and start it again so new wiki-links resolve. (`npm run index` rebuilds it on its own.)
 
 ### What to expect
 
@@ -294,10 +294,10 @@ If something isn't showing up, check the terminal for warning messages — the b
 
 Your project is set up and running locally. From here:
 
-**→ `docs/writing-scenes.md`** — add your first scene and start publishing prose to your reader site.
+**→ `docs/04_writing-scenes.md`** — add your first scene and start publishing prose to your reader site.
 
-**→ `docs/entities.md`** — full details on every field for characters, places, and groups, including how computed fields like "appears in" and group rosters work.
+**→ `docs/02_entities.md`** — full details on every field for characters, places, and groups, including how computed fields like "appears in" and group rosters work.
 
-**→ `docs/customization.md`** — colors, fonts, reader defaults, and how to make your site feel like yours.
+**→ `docs/07_customization.md`** — colors, fonts, reader defaults, and how to make your site feel like yours.
 
-**→ `docs/deployment.md`** — when you're ready to put your site on the web.
+**→ `docs/08_deployment.md`** — when you're ready to put your site on the web.

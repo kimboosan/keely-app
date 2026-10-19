@@ -1,7 +1,8 @@
 # story.toml
 # ==========
-# Lives at the root of your story folder:
-# projects/my-project/stories/my-story/story.toml
+# Lives at: src/data/projects/my-project/stories/my-story/story.toml
+# Its scenes live separately, in src/content/stories/my-story/scenes/ —
+# the two story folders must have the same name.
 #
 # This file declares the metadata for a single story within your project.
 # If you have one standalone novella, you have one story.toml.
@@ -13,10 +14,6 @@
 #
 # Required fields: title, genre, rating, completion_status,
 # content_warnings.required. Everything else is optional.
-#
-# NOTE (Phase 1): In the current Astro-based setup, this file lives at
-# src/data/projects/my-project/stories/my-story/story.toml
-# Phase 2 will move it to your content folder root.
 # -----------------------------------------------------------------------
 
 
@@ -65,10 +62,13 @@ banner = ""
 # -----------------------------------------------------------------------
 
 # Primary genre. Required.
-# Controlled vocabulary — choose exactly one:
-#   Science Fiction, Fantasy, Romance, Mystery, Thriller, Horror,
-#   Historical Fiction, Alternative History, Literary Fiction, Western,
-#   Action and Adventure, LitRPG, Non-Fiction, Memoir, Fan Fiction
+# Controlled vocabulary (src/data/genres.json) — choose exactly one:
+#   Action & Adventure, Coming of Age, Contemporary Fiction, Crime,
+#   Drama, Dystopian, Erotica, Fairy Tale & Folklore, Family Life,
+#   Fantasy, General Fiction, Historical Fiction, Horror, Humor,
+#   LGBTQ+, Literary Fiction, Mystery & Detective, Paranormal, Poetry,
+#   Romance, Science Fiction, Short Stories, Thriller & Suspense,
+#   War & Military, Western, Women's Fiction
 genre = "Science Fiction"
 
 # Subgenre tags. Optional, free-form — use whatever niche descriptors
@@ -123,7 +123,7 @@ expected_chapters = "?"
 #               graphic-violence | character-death | sexual-content |
 #               non-consent | creator-chose-not-to-warn | no-warnings-apply
 # additional — zero or more values from the additional vocabulary.
-#              See REFERENCE.md for the full list.
+#              See docs/REFERENCE.md for the full list.
 # custom    — zero or more free-form warnings you write yourself.
 #             These are specific to this story and are not searchable
 #             across the site.
@@ -142,7 +142,9 @@ custom = []
 # AUTHOR'S NOTES (story level)
 # -----------------------------------------------------------------------
 # Notes addressed to readers, visible on the story landing page.
-# Supports markdown and wiki-links ([[entity-slug]]).
+# Plain text: shown exactly as written, so markdown and [[wiki-links]]
+# aren't converted here. Currently only `top` is displayed on the story
+# page; `bottom` is read but not yet shown.
 # Both top and bottom are optional. If omitted or left empty, they
 # do not appear for readers.
 #

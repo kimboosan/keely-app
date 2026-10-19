@@ -1,3 +1,4 @@
+import { CONTENT } from '../utils/vault.mjs';
 /**
  * renumber-scenes.mjs
  *
@@ -36,7 +37,7 @@ if (!storySlug) {
   process.exit(1);
 }
 
-const CONTENT_ROOT = './src/content';
+const CONTENT_ROOT = CONTENT;
 const scenesRoot = join(CONTENT_ROOT, 'stories', storySlug, 'scenes');
 
 if (!existsSync(scenesRoot)) {

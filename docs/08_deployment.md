@@ -100,11 +100,10 @@ For specific server configuration, environment setup, or advanced deployment pip
 The ongoing publishing workflow is the same regardless of your deployment target:
 
 1. Write or edit your content files in Obsidian or VS Code.
-2. If you've added or renamed entities, rebuild the entity index: `node src/scripts/build-entity-index.mjs`
-3. Run a production build: `npm run build`
-4. Deploy the updated `dist/` folder to your host.
+2. Run a production build: `npm run build`. It rebuilds the entity index first, so new and renamed entities are picked up.
+3. Deploy the updated `dist/` folder to your host.
 
-The Phase 2 editor app will consolidate steps 2–4 into a single "build and deploy" button.
+The Phase 2 editor app will consolidate steps 2–3 into a single "Publish" button.
 
 ---
 
@@ -112,4 +111,4 @@ The Phase 2 editor app will consolidate steps 2–4 into a single "build and dep
 
 Your site is live. From here, the ongoing work is writing — adding scenes, expanding your wiki, and building your reader community.
 
-**→ `QUICKSTART.md`** — a condensed version of this entire documentation set for authors who want a fast path from install to live site.
+**→ `docs/09_quickstart.md`** — a condensed version of this entire documentation set for authors who want a fast path from install to live site.

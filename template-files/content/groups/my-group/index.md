@@ -1,16 +1,12 @@
 ---
 # index.md — Group file
 # =====================
-# Lives at: projects/my-project/groups/my-group/index.md
+# Lives at: src/content/groups/my-group/index.md
 # The folder name is the group's slug and becomes their URL.
 #
-# Required fields: name, type.
+# Required fields: name, type, project.
 # Everything else is optional — omit any field you don't need and
 # it will not appear on the page.
-#
-# NOTE (Phase 1): In the current Astro-based setup, this file lives at
-# src/data/projects/my-project/groups/my-group/index.md
-# Phase 2 will move it to your content folder root.
 # -----------------------------------------------------------------------
 
 
@@ -24,7 +20,7 @@ name: "My Group"
 # The group's full unabbreviated name, if different from `name`.
 # Example: name is "Mizmo", full_name is "Mizmo Lunar Operations Corporation"
 # If omitted, no full name appears.
-full_name: ""
+# full_name: ""
 
 # Short display name used in wiki references throughout the story.
 # If omitted, defaults to `name`.
@@ -42,11 +38,11 @@ type: group
 # Your own free-form category for this group within the story.
 # Examples: corporation, faction, family, crew, government, cult
 # If omitted, no subtype appears.
-subtype: ""
+# subtype: ""
 
 # Current state of the group. Optional, free-form.
 # Examples: active, dissolved, underground, contested
-status: ""
+# status: ""
 
 
 # -----------------------------------------------------------------------
@@ -55,16 +51,16 @@ status: ""
 
 # Where the group is based. Free-form text.
 # If omitted, no headquarters appears.
-headquarters: ""
+# headquarters: ""
 
 # When the group was founded. Free-form text or a year.
 # If omitted, no founded date appears.
-founded: ""
+# founded: ""
 
 # The character who leads this group.
 # Use wiki-link format: "[[character-slug]]"
 # If omitted, no leader appears.
-leader: ""
+# leader: ""
 
 
 # -----------------------------------------------------------------------
@@ -95,8 +91,8 @@ allied_with:
 # gallery   — additional images. Each needs a filename, alt text, and
 #             optional caption. If omitted, no gallery appears.
 
-image: ""
-image_alt: ""
+# image: ""
+# image_alt: ""
 gallery: []
 
 # Gallery example — uncomment and duplicate for each additional image:

@@ -1,6 +1,6 @@
 # authors.toml
 # ============
-# Lives at the root of your Keely project folder, alongside publisher.toml.
+# Lives at: src/data/authors.toml, alongside publisher.toml.
 # This file declares all authors associated with your Keely instance and
 # drives the /about page.
 #
@@ -8,10 +8,6 @@
 # about page follows the order entries appear here.
 #
 # Only `name` is required per entry. Everything else is optional.
-#
-# NOTE (Phase 1): In the current Astro-based setup, this file lives at
-# src/data/authors.toml inside your Keely project folder.
-# Phase 2 will move it to your content folder root.
 # -----------------------------------------------------------------------
 
 

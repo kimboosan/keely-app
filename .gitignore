@@ -1,1 +1,29 @@
+# The generator's own ignore rules. Released to keely-app as its root
+# .gitignore by scripts/release.sh, so keep it to what the generator needs.
+
+# Build output
+dist/
+
+# Astro's generated types and dev cache
+.astro/
+
+# Dependencies
+node_modules/
+
+# Computed from the vault by `npm run index`, never authored (D-148):
+# the entity index and relationships, and copies of scene images.
+.keely-cache/
+public/scenes/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.production
+
+# macOS
 .DS_Store

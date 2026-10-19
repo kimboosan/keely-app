@@ -1,22 +1,21 @@
 ---
 # index.md — Scene file
 # =====================
-# Lives at: projects/my-project/stories/my-story/scenes/my-first-scene/index.md
+# Lives at: src/content/stories/my-story/scenes/01-my-first-scene/index.md
+# (or inside arc/chapter folders under scenes/ — see docs/REFERENCE.md).
+# The story folder name (my-story) must match the story's folder under
+# src/data/projects/my-project/stories/.
 # The folder name is the scene's slug and becomes part of its URL.
 #
 # IMPORTANT: The numeric prefix on the folder name (e.g. 01-my-first-scene)
 # determines reading order. The generator reads folders alphanumerically,
-# so 01- comes before 02-, and so on. See REFERENCE.md for folder naming
+# so 01- comes before 02-, and so on. See docs/REFERENCE.md for folder naming
 # conventions and how to renumber scenes.
 #
 # Required fields: type, status, narrative_mode.
 # Additional required fields when status is "published":
 #   first_published_date, last_published_date, word_count
 # Everything else is optional.
-#
-# NOTE (Phase 1): In the current Astro-based setup, this file lives at
-# src/data/projects/my-project/stories/my-story/scenes/my-first-scene/index.md
-# Phase 2 will move it to your content folder root.
 # -----------------------------------------------------------------------
 
 
@@ -55,9 +54,9 @@ status: drafting
 # word_count           — enter manually in Phase 1. The Phase 2 editor
 #                        app will fill this in automatically.
 
-first_published_date: ""
-last_published_date: ""
-word_count: ""
+# first_published_date: ""
+# last_published_date: ""
+# word_count: ""
 
 
 # -----------------------------------------------------------------------
@@ -67,18 +66,18 @@ word_count: ""
 # A one or two sentence summary shown at the top of the scene page,
 # before the prose. Plain text only — no markdown or wiki-links.
 # If omitted, no summary appears.
-summary: ""
+# summary: ""
 
 # Content warnings for this scene specifically. Optional and additive —
 # these layer on top of the story-level warnings set in story.toml.
 # They do not replace the story-level warnings.
-# See REFERENCE.md for the full additional vocabulary list.
+# See docs/REFERENCE.md for the full additional vocabulary list.
 content_warnings:
   additional: []
   custom: []
 
-# Author's notes for this scene. Optional. Supports markdown and
-# wiki-links ([[entity-slug]]).
+# Author's notes for this scene. Optional. Plain text: shown exactly as
+# written, so markdown and [[wiki-links]] aren't converted here.
 # top    — appears above the scene prose, after any warning banner.
 # bottom — appears after the scene prose, before prev/next navigation.
 # If omitted or left empty, neither appears.
@@ -95,7 +94,7 @@ authors_notes:
 # Controlled vocabulary — choose exactly one:
 #   first-person | third-limited | third-omniscient | second-person |
 #   third-objective | epistolary | unreliable
-# See REFERENCE.md for descriptions of each mode.
+# See docs/REFERENCE.md for descriptions of each mode.
 narrative_mode: third-limited
 
 # The character whose perspective drives this scene. Optional.
@@ -103,7 +102,7 @@ narrative_mode: third-limited
 # Omit for omniscient, ensemble, or non-POV scenes.
 # Only scenes with pov_character set are visible to readers following
 # a POV-filtered through-line for that character.
-pov_character: ""
+# pov_character: ""
 
 # All characters who appear in this scene. Optional but recommended —
 # this is how the generator builds "appears in" lists on character pages.
@@ -115,7 +114,7 @@ characters_in_scene:
 # this is how the generator builds "scenes at this location" lists
 # on place pages.
 # Use wiki-link format: "[[place-slug]]"
-scene_location: ""
+# scene_location: ""
 
 # Secondary locations, if the scene moves between places. Optional.
 # Use wiki-link format for each.

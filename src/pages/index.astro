@@ -1,6 +1,7 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
 import { getPublisherConfig, getProjects } from '../utils/config.js';
+import { marked } from 'marked';
 
 const publisher = getPublisherConfig();
 const projects = getProjects();
@@ -14,7 +15,7 @@ const aboutLabel = publisher.about_label ?? 'About the Author';
 
     <h1>{publisher.name}</h1>
     {publisher.tagline && <p class="publisher-tagline">{publisher.tagline}</p>}
-    {publisher.storefront_blurb && <div class="publisher-blurb">{publisher.storefront_blurb}</div>}
+    {publisher.storefront_blurb && <div class="publisher-blurb" set:html={marked.parse(publisher.storefront_blurb)} />}
 
     <div class="publisher-nav">
       <a href="/projects" class="publisher-nav-card">

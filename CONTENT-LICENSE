@@ -1,60 +1,23 @@
-Keely Editor App — Source-Available License
-Copyright (c) 2026 KimBoo York / House of York
+Keely File Format Specification — CC0 1.0 Universal Public Domain Dedication
 
-This license applies to all files in this repository EXCEPT those in the
-/generator directory, which is separately licensed under the MIT License
-(see /generator/LICENSE).
+The Keely file format specification — including all schema definitions,
+field names, controlled vocabularies, and structural conventions documented
+in this repository — is dedicated to the public domain under the Creative
+Commons CC0 1.0 Universal license.
 
-1. PERMITTED USE — NO RESTRICTION
+To the extent possible under law, KimBoo York has waived all copyright and
+related or neighboring rights to the Keely file format specification.
 
-You are always free, without restriction or fee, to:
+This means you are free to:
+- Implement the Keely file format in your own tools
+- Adapt the format for your own purposes
+- Build on it without restriction or attribution requirement
 
-  - Use this software (in source form, self-built, or as a packaged
-    distribution obtained from keely-app.com) to write, publish, manage,
-    and monetize your own creative work, including but not limited to
-    fiction, non-fiction, and any associated wiki or world-building content.
-  - This includes use of any subscription, paywall, or monetization
-    features included in current or future versions of the software,
-    applied to your own published work and your own readers.
-  - Read, study, and modify the source code for your own use under this
-    license.
-  - Self-host a private, personal instance of this software for your own
-    writing and publishing purposes.
+This dedication covers the FILE FORMAT SPECIFICATION ONLY. It does not cover:
+- The Keely generator code, which is licensed under the MIT License (see LICENSE)
+- Author content created using Keely (characters, scenes, prose, wiki entries,
+  and all other creative work), which remains the copyright of the respective
+  author under the terms they choose
 
-This permission is permanent and applies regardless of whether KimBoo York,
-House of York, or the keely-app.com service continues to operate.
-
-2. RESTRICTED USE — REQUIRES SEPARATE PERMISSION
-
-The following uses are NOT permitted without prior written permission from
-KimBoo York:
-
-  - Offering this software, or a modified version of it, as a hosted service
-    to third parties (i.e., operating a competing version of keely-app.com).
-  - Repackaging, rebranding, or redistributing this software, in source or
-    compiled form, as a commercial product or service.
-  - Selling, sublicensing, or charging others for access to this software
-    or derivative works based on it.
-
-3. CONTRIBUTIONS
-
-[Placeholder — to be defined if/when external contributions are accepted.]
-
-4. NO WARRANTY
-
-THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE
-USE OF THIS SOFTWARE.
-
-5. QUESTIONS
-
-For licensing questions or to request permission for restricted use, contact
-KimBoo York at [contact info].
-
----
-
-This is a custom source-available license and has not been reviewed by an
-attorney. It is intended to clearly express the author's intent; formal
-legal review is planned before public release.
+For the full legal text of the CC0 1.0 Universal license, see:
+https://creativecommons.org/publicdomain/zero/1.0/

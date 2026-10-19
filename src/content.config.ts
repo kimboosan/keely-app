@@ -1,3 +1,4 @@
+import { CONTENT, CACHE } from './utils/vault.mjs';
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { readFileSync, existsSync } from 'fs';
@@ -12,7 +13,7 @@ import { readFileSync, existsSync } from 'fs';
 //
 // If the JSON doesn't exist yet, run `npm run index` to generate it.
 
-const CUSTOM_TYPES_PATH = './src/data/custom-entity-types.json';
+const CUSTOM_TYPES_PATH = `${CACHE}/custom-entity-types.json`;
 
 let customTypeNames: string[] = [];
 try {
@@ -38,7 +39,7 @@ const customEntitySchema = z.object({
 const customCollections = Object.fromEntries(
   customTypeNames
     .filter(typeName => {
-      const base = `./src/content/${typeName}`;
+      const base = `${CONTENT}/${typeName}`;
       if (!existsSync(base)) {
         console.warn(
           `[Keely] Custom entity type "${typeName}" is declared in project.toml ` +
@@ -52,7 +53,7 @@ const customCollections = Object.fromEntries(
     .map(typeName => [
       typeName,
       defineCollection({
-        loader: glob({ pattern: '**/index.md', base: `./src/content/${typeName}` }),
+        loader: glob({ pattern: '**/index.md', base: `${CONTENT}/${typeName}` }),
         schema: customEntitySchema,
       }),
     ])
@@ -61,10 +62,12 @@ const customCollections = Object.fromEntries(
 // ─── Built-in collections ─────────────────────────────────────────────────────
 
 const charactersCollection = defineCollection({
-  loader: glob({ pattern: '**/index.md', base: './src/content/characters' }),
+  loader: glob({ pattern: '**/index.md', base: `${CONTENT}/characters` }),
   schema: z.object({
     // Identity
     name: z.string(),
+    surname: z.string().optional(),
+    given_names: z.string().optional(),
     title: z.string().optional(),
     short_name: z.string().optional(),
     aliases: z.array(z.string()).optional(),
@@ -93,7 +96,7 @@ const charactersCollection = defineCollection({
     })).optional(),
 
     // Relationships
-    group: z.array(z.string()).optional(),
+    groups: z.array(z.string()).optional(),
     related_to: z.array(z.object({
       entity: z.string(),
       relationship: z.string(),
@@ -105,7 +108,7 @@ const charactersCollection = defineCollection({
 });
 
 const placesCollection = defineCollection({
-  loader: glob({ pattern: '**/index.md', base: './src/content/places' }),
+  loader: glob({ pattern: '**/index.md', base: `${CONTENT}/places` }),
   schema: z.object({
     // Identity
     name: z.string(),
@@ -142,7 +145,7 @@ const placesCollection = defineCollection({
 });
 
 const groupsCollection = defineCollection({
-  loader: glob({ pattern: '**/index.md', base: './src/content/groups' }),
+  loader: glob({ pattern: '**/index.md', base: `${CONTENT}/groups` }),
   schema: z.object({
     // Identity
     name: z.string(),
@@ -179,7 +182,7 @@ const groupsCollection = defineCollection({
 });
 
 const scenesCollection = defineCollection({
-  loader: glob({ pattern: '**/index.md', base: './src/content/stories' }),
+  loader: glob({ pattern: '**/index.md', base: `${CONTENT}/stories` }),
   schema: z.object({
     // Identity & workflow
     title: z.string().optional(),

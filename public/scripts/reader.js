@@ -115,6 +115,7 @@ function wireContentWarnings() {
       prosePane.innerHTML = newPane.innerHTML;
       wireEntityLinks();
       wireContentWarnings();
+      applyReaderPreferences(); 
       const newSceneId = newPane.querySelector('.scene-meta')?.dataset.sceneId;
       if (newSceneId) window.__KEELY_CURRENT_SCENE__ = newSceneId;
       const currentMode = localStorage.getItem('keely-throughline') ?? 'linear';
@@ -300,7 +301,88 @@ document.getElementById('throughline-select')?.addEventListener('change', (e) =>
   applyFilter(e.target.value);
 });
 
+// ── Reader Preferences ───────────────────────────────────────────────
+
+function applyReaderPreferences() {
+  const hideWarnings = localStorage.getItem('keely-hide-warnings') === 'true';
+  const hideNotes = localStorage.getItem('keely-hide-notes') === 'true';
+  const wikiCollapsed = localStorage.getItem('keely-wiki-default-collapsed') === 'true';
+
+  // Content warnings — scene level
+  const cwWrapper = document.getElementById('cw-wrapper');
+  if (cwWrapper) cwWrapper.hidden = hideWarnings;
+
+  // Content warnings — story level
+  document.querySelectorAll('.story-block--warnings').forEach(el => {
+    el.hidden = hideWarnings;
+  });
+
+  // Author notes — scene level
+  document.querySelectorAll('.scene-authors-note').forEach(el => {
+    el.hidden = hideNotes;
+  });
+
+  // Author notes — story level
+  document.querySelectorAll('.story-author-note').forEach(el => {
+    el.hidden = hideNotes;
+  });
+
+  // Wiki pane default collapsed state
+  if (wikiCollapsed && wikiPaneEl && !localStorage.getItem('wiki-collapsed')) {
+    wikiPaneEl.classList.add('collapsed');
+    wikiToggle.textContent = '›';
+  }
+}
+
+function wireReaderPreferences() {
+  const btn = document.getElementById('reader-prefs-btn');
+  const modal = document.getElementById('reader-prefs-modal');
+  const closeBtn = document.getElementById('reader-prefs-close');
+  const hideWarningsEl = document.getElementById('pref-hide-warnings');
+  const hideNotesEl = document.getElementById('pref-hide-notes');
+  const wikiCollapsedEl = document.getElementById('pref-wiki-collapsed');
+
+  if (!btn || !modal) return;
+
+  // Restore checkbox states from localStorage
+  hideWarningsEl.checked = localStorage.getItem('keely-hide-warnings') === 'true';
+  hideNotesEl.checked = localStorage.getItem('keely-hide-notes') === 'true';
+  wikiCollapsedEl.checked = localStorage.getItem('keely-wiki-default-collapsed') === 'true';
+
+  // Open/close modal
+  btn.addEventListener('click', () => {
+    modal.hidden = !modal.hidden;
+  });
+
+  closeBtn.addEventListener('click', () => {
+    modal.hidden = true;
+  });
+
+  // Close on click outside panel
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.hidden = true;
+  });
+
+  // Toggle handlers — save and apply immediately
+  hideWarningsEl.addEventListener('change', () => {
+    localStorage.setItem('keely-hide-warnings', hideWarningsEl.checked);
+    applyReaderPreferences();
+  });
+
+  hideNotesEl.addEventListener('change', () => {
+    localStorage.setItem('keely-hide-notes', hideNotesEl.checked);
+    applyReaderPreferences();
+  });
+
+  wikiCollapsedEl.addEventListener('change', () => {
+    localStorage.setItem('keely-wiki-default-collapsed', wikiCollapsedEl.checked);
+    applyReaderPreferences();
+  });
+}
+
 // Initialize
   wireEntityLinks();
   wireContentWarnings();
+  wireReaderPreferences();
+  applyReaderPreferences();
   updateControls();

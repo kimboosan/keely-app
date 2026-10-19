@@ -2,7 +2,7 @@
 
 A static site generator for serialized fiction with integrated wiki developed and shared by KimBoo York.
 
-**STATUS**: Version 0.5 
+**STATUS**: Version 0.6
 
 Keely turns plain markdown files into a dual-pane reader site — prose on the left, live wiki entries on the right, with character and place names clickable throughout the story text.
 
@@ -11,7 +11,7 @@ Keely turns plain markdown files into a dual-pane reader site — prose on the l
 ## Quick links
 - [Installation guide](INSTALL.md)
 - [Documentation](docs/09_quickstart.md)
-- [Template files](template-files/)
+- [Starter site / template files](template-files/)
 
 ## License
 Code: MIT — see [LICENSE](LICENSE)

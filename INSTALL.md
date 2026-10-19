@@ -54,7 +54,7 @@ to the web. Phase 2 will wrap this in a desktop editor app for authors
 who prefer a visual interface. Phase 3 will add reader interaction
 features: comments, subscriptions, paywalls, and analytics.
 
-For a full overview of what each phase delivers, see `REFERENCE.md`.
+For a full overview of what each phase delivers, see `docs/REFERENCE.md`.
 
 ---
 
@@ -77,10 +77,10 @@ follow the installer for your operating system.
 ### Node.js
 
 Node.js is the runtime that powers Keely's build process. You need
-version 18 or higher.
+version 22.12 or higher.
 
 **Check if you have it:** open a terminal and type `node --version`.
-If you see `v18` or higher, you're set.
+If you see `v22.12` or higher (or any `v23`, `v24` and up), you're set.
 
 **Install it:** download from [nodejs.org](https://nodejs.org) and
 choose the LTS (Long Term Support) version. The installer handles
@@ -116,7 +116,7 @@ server management required.
   already have one.
 - **Your own server** — if you're comfortable with web hosting and
   want full control, Keely's build output is a standard static site
-  that deploys anywhere. See `docs/deployment.md` for details.
+  that deploys anywhere. See `docs/08_deployment.md` for details.
 
 You don't need a deployment account to work locally — you can run
 and preview your site on your own machine indefinitely.
@@ -126,25 +126,24 @@ and preview your site on your own machine indefinitely.
 ## Get the Template
 
 Open a terminal, navigate to the folder where you want your Keely
-project to live, and run:
+site to live, and run:
 
 ```bash
-git clone https://github.com/keely-app/keely-template my-project
-cd my-project
+git clone https://github.com/kimboosan/keely-app my-site
+cd my-site
 ```
 
-Replace `my-project` with whatever you want your project folder to
-be called.
+Replace `my-site` with whatever you want your folder to be called.
 
-This gives you a complete copy of the Keely template — the generator,
-all configuration, and the placeholder content files you'll replace
-with your own.
+This gives you a complete copy of Keely: the generator, the
+documentation, and a small starter site in `template-files/` that
+you'll replace with your own.
 
 ---
 
 ## Install Dependencies
 
-Inside your project folder, run:
+Inside your folder, run:
 
 ```bash
 npm install
@@ -157,6 +156,21 @@ the prompt, you're ready.
 
 ---
 
+## Copy In the Starter Site
+
+Your content lives in two folders, `src/content/` and `src/data/`,
+which start out empty. Copy the starter site into them:
+
+```bash
+cp -R template-files/content template-files/data src/
+```
+
+The starter is a tiny but complete site: a publisher, an author, one
+project with one story and one scene, and one character, place and
+group. Every file is annotated, so it doubles as a guide to the format.
+
+---
+
 ## Run the Dev Server
 
 Start the local development server:
@@ -166,8 +180,13 @@ npm run dev
 ```
 
 Open your browser and go to the local address shown in your terminal
-— it will look something like `http://localhost:4321` (the specific number might be different). You should see
-the placeholder Keely site — the template content running live on your machine.
+— it will look something like `http://localhost:4321` (the specific
+number might be different). You should see the starter site running
+live on your machine.
+
+A yellow **PREVIEW** bar runs across the top of every page. It's there
+to remind you this is a local preview that only you can see; it never
+appears on your published site.
 
 The dev server watches your files for changes and updates the browser
 automatically. Leave it running while you work.
@@ -178,36 +197,55 @@ To stop the server, press `Ctrl+C` in the terminal.
 
 ## What You're Looking At
 
-Here's a quick map of the project folder so nothing feels mysterious.
+Here's a quick map of the folder so nothing feels mysterious.
 
 ```
-my-project/
+my-site/
   src/
-    data/          ← your content lives here (Phase 1 location)
+    content/       ← your writing: entities and scenes
+      characters/
+        my-character/index.md
+      places/
+      groups/
+      stories/
+        my-story/
+          scenes/
+            01-my-first-scene/index.md
+    data/          ← your settings: publisher, authors, projects, stories
       publisher.toml
       authors.toml
+      genres.json, ratings.json, warnings-vocabulary.json
       projects/
         my-project/
           project.toml
-          characters/
-          places/
-          groups/
           stories/
+            my-story/story.toml
     pages/         ← the generator templates (you won't need to touch these)
     scripts/       ← build scripts (you won't need to touch these)
-  public/          ← static assets (built output; do not edit directly)
-  template-files/  ← annotated template files to copy when adding content
+  public/          ← styles and scripts for the reader site
+  template-files/  ← the starter site, to copy from when adding content
   docs/            ← documentation (you're reading one now)
-  REFERENCE.md     ← quick reference for all fields and vocabularies
 ```
 
-**The most important thing to know:** your content lives in `src/data/`.
-That's where you'll spend most of your time. Everything else is the
+**The most important thing to know:** everything you write lives in
+`src/content/` and `src/data/`. That's where you'll spend your time,
+and those two folders are what to back up. Everything else is the
 generator — you don't need to touch it to publish your story.
 
-The `template-files/` folder contains fully annotated copies of every
-file type, with every field explained inline. Copy from there whenever
-you're adding a new character, place, group, or scene.
+Entities and scenes are organized by type, not by project: all
+characters live in `src/content/characters/`, whichever project they
+belong to. Each one says which project it belongs to in its `project`
+field. A story's settings (`story.toml`, under `src/data/projects/`)
+and its scenes (under `src/content/stories/`) live in two folders with
+the same name.
+
+The `.json` files in `src/data/` are the controlled vocabularies the
+generator checks your files against (genres, ratings, content
+warnings). Leave them as they are.
+
+The `template-files/` folder keeps a clean copy of every file type,
+with every field explained inline. Copy from there whenever you're
+adding a new character, place, group, or scene.
 
 ---
 
@@ -215,11 +253,11 @@ you're adding a new character, place, group, or scene.
 
 Your site is running. Now it's time to make it yours.
 
-**→ Continue to `QUICKSTART.md`** to replace the placeholder content
-with your own project, write your first scene, and deploy your site
-to the web.
+**→ Continue to `docs/09_quickstart.md`** to replace the starter
+content with your own project, write your first scene, and deploy
+your site to the web.
 
 If you want to explore the file format in depth before diving in,
-`REFERENCE.md` has everything: controlled vocabularies, field
+`docs/REFERENCE.md` has everything: controlled vocabularies, field
 references, folder conventions, and an explanation of how computed
 fields work.

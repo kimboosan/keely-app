@@ -16,7 +16,7 @@ co-location. A scene's inline images live in the same folder as its prose, keepi
 place.
 
 ```
-scenes/
+src/content/stories/my-story/scenes/
   01-the-order/
     index.md
     evacuation-notice.png  ← inline image, lives here
@@ -63,11 +63,20 @@ descriptive slug for the rest of the name — you'll thank yourself later when n
 sufficient. For longer works — novels with many short scenes, or ongoing serials — use three digits (001- through 999-) from the
 start. It's much easier to pad from the beginning than to renumber 150 scenes later. When in doubt, use three digits.
 
-To insert a scene between existing scenes, rename the affected folder prefixes manually. The Phase 2 editor app will handle reordering by drag-and-drop with automatic renumbering.
+To insert a scene between existing scenes, give the new folder a temporary prefix that sorts where you want it, then let Keely renumber
+the story:
+
+```bash
+npm run renumber -- my-story            # dry run: shows what would change
+npm run renumber -- my-story --apply    # renames the folders
+```
+
+Renumbering also updates every `[[wiki-link]]` to a renamed scene across `src/content/`. Links to scenes in `src/data/` files (author
+notes in `story.toml` or `project.toml`) aren't scanned, so update those by hand.
 
 ### Copy the template
 
-Copy `template-files/projects/my-project/stories/my-story/scenes/my-first-scene/index.md` into your new scene folder and name it `index.md`. Open it and fill in the frontmatter fields.
+Copy `template-files/content/stories/my-story/scenes/01-my-first-scene/index.md` into your new scene folder. Open it and fill in the frontmatter fields.
 
 ---
 
@@ -89,8 +98,8 @@ your scene prose.
 | `word_count` | Req. if published | Integer | Scene word count. Enter manually in Phase 1 — the Phase 2 editor app fills this in automatically. |
 | `summary` | No | String | A one or two sentence summary shown at the top of the scene page, before the prose. Plain text only — no markdown or wiki-links. |
 | `content_warnings` | No | Block | Scene-level content warnings. Additive — these layer on top of story-level warnings, never replace them. See Content Warnings at Scene Level below. |
-| `authors_notes.top` | No | String | Author's note shown above the scene prose. Supports markdown and wiki-links. |
-| `authors_notes.bottom` | No | String | Author's note shown below the scene prose. Supports markdown and wiki-links. |
+| `authors_notes.top` | No | String | Author's note shown above the scene prose. Plain text — markdown and wiki-links aren't converted. |
+| `authors_notes.bottom` | No | String | Author's note shown below the scene prose. Plain text — markdown and wiki-links aren't converted. |
 | `pov_character` | No | Wiki-link | The character whose perspective drives this scene (`[[character-slug]]`). Omit for omniscient or ensemble scenes. Only scenes with this field set are visible to readers following a POV-filtered through-line. |
 | `characters_in_scene` | No | List | All characters who appear in this scene, each as a wiki-link. Include the POV character if set. This is how the generator builds "appears in" lists on character pages. |
 | `scene_location` | No | Wiki-link | The primary location of this scene (`[[place-slug]]`). This is how the generator builds "scenes at this location" lists on place pages. |
@@ -178,15 +187,28 @@ To show different text while linking to the same entity:
 ```
 
 Use the entity's folder name as the slug, not its display name.
-If you're unsure of a slug, check the entity's folder name in your
-project.
+If you're unsure of a slug, check the entity's folder name in
+`src/content/`.
+
+### Links to other scenes
+
+You can also link to another scene in the same story by its folder name:
+
+```markdown
+As she'd learned back in [[03-the-fax]], nothing on the station stayed quiet for long.
+[[03-the-fax|that morning]], she'd been sure of it.
+```
+
+The link shows the scene's title (or your `|display text`) and takes readers to that scene. Scene links only reach scenes in the same
+story, since scene folder names are only unique within a story.
 
 ### Inline images
 
-Embed images in scene prose using standard markdown image syntax:
+Embed images in scene prose using Keely's image syntax (not standard markdown `![alt](file)`, which can't find images in your scene
+folder):
 
 ```markdown
-![Alt text describing the image](image-filename.jpg)
+[[image:image-filename.jpg|Alt text describing the image]]
 ```
 
 Place the image file in the scene's folder alongside `index.md`. Reference it by filename only — not a full path. See
@@ -196,7 +218,8 @@ Place the image file in the scene's folder alongside `index.md`. Reference it by
 
 ## Author's Notes
 
-Author's notes are optional messages to readers, separate from the scene prose itself. They support markdown and wiki-links.
+Author's notes are optional messages to readers, separate from the scene prose itself. They're plain text: shown exactly as written, so
+markdown formatting and `[[wiki-links]]` aren't converted in them.
 
 `authors_notes.top` appears above the scene prose, after any content warning banner. Good for: update notes, context about the scene,
 or a note to returning readers.

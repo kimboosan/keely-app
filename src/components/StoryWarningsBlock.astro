@@ -1,0 +1,77 @@
+---
+import { getWarningLabel } from '../utils/warnings.js';
+
+const { storyWarnings } = Astro.props;
+
+const hasStoryWarnings =
+  !!storyWarnings?.required ||
+  storyWarnings?.additional?.length > 0 ||
+  storyWarnings?.custom?.length > 0;
+---
+
+{hasStoryWarnings && (
+  <div class="cw-story">
+    <span class="cw-section-label">Story-wide warnings:</span>
+    <div class="cw-tags">
+      {storyWarnings.required && (
+        <span class="cw-tag cw-required">{getWarningLabel(storyWarnings.required)}</span>
+      )}
+      {storyWarnings.additional?.map(w => (
+        <span class="cw-tag">{getWarningLabel(w)}</span>
+      ))}
+    </div>
+    {storyWarnings.custom?.length > 0 && (
+      <ul class="cw-custom-list">
+        {storyWarnings.custom.map(w => <li>{w}</li>)}
+      </ul>
+    )}
+  </div>
+)}
+
+<style>
+  .cw-story {
+    margin-bottom: 0.5rem;
+  }
+
+  .cw-section-label {
+    display: block;
+    font-weight: bold;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    color: var(--color-text);
+  }
+
+  .cw-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .cw-tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    background: var(--color-warning-bg, #fff3cd);
+    border: 1px solid var(--color-warning-border, #c97d00);
+    border-radius: 3px;
+    font-size: 0.8rem;
+    text-transform: capitalize;
+  }
+
+  .cw-required {
+    font-weight: bold;
+  }
+
+  .cw-custom-list {
+    margin: 0.4rem 0 0 0;
+    padding-left: 1.25rem;
+    font-style: italic;
+    color: var(--color-meta-text, #555);
+    font-size: 0.8rem;
+  }
+
+  .cw-custom-list li {
+    margin-bottom: 0.2rem;
+  }
+</style>

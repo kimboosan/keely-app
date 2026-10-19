@@ -1,0 +1,139 @@
+---
+// Preview mode (D-153): what the Keely app's live preview needs from the
+// reader site's pages. `SiteLayout` includes this only when the generator
+// runs as the preview server (`astro dev`); a production build — Netlify,
+// the app's Publish — never contains any of it.
+//
+// - **Banner.** Any page opened in a normal browser window gets a
+//   "PREVIEW" bar, so an author never mistakes a local preview for the
+//   live site. Never shown inside the app's own panel.
+// - **Prose view.** Inside the app's panel, `?keely-view=prose` shows a
+//   scene's prose alone (no header, metadata, title, notes, warnings, or
+//   wiki pane), and an entity page without the site header.
+//   `?keely-view=site` shows the full page. The choice is kept in this
+//   frame's sessionStorage, so it holds across reloads; a browser window
+//   never sees it.
+// - **Links in prose view don't respond** to clicks — the wiki pane they
+//   would open is hidden. Every click goes through the one handler below,
+//   on purpose: opening the clicked entity as a tab in the app will replace
+//   "do nothing" there with a message to the app.
+// - **Scroll memory.** Reloads after a save return to where you were.
+---
+
+<style is:inline>
+  html[data-keely-view='prose'] #site-header,
+  html[data-keely-view='prose'] #wiki-toggle,
+  html[data-keely-view='prose'] #wiki-pane,
+  html[data-keely-view='prose'] #wiki-backdrop,
+  html[data-keely-view='prose'] #prose-pane > :not(.scene-prose),
+  html[data-keely-view='prose'] .scene-prose > .scene-authors-note {
+    display: none !important;
+  }
+  html[data-keely-view='prose'] a {
+    cursor: default;
+  }
+  #keely-preview-banner {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    flex-shrink: 0;
+    padding: 0.9rem 1.25rem;
+    background: #f2c14e;
+    color: #2b2100;
+    font: 1.1rem/1.4 system-ui, sans-serif;
+    text-align: center;
+    border-bottom: 4px solid #8a6a14;
+  }
+  #keely-preview-banner strong {
+    font-size: 1.3rem;
+    letter-spacing: 0.02em;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var root = document.documentElement;
+    var inPanel = window.self !== window.top;
+
+    function remember(key, value) {
+      try {
+        sessionStorage.setItem(key, value);
+      } catch (e) {
+        // Not remembered — the page still shows the view it was asked for.
+      }
+    }
+    function recall(key) {
+      try {
+        return sessionStorage.getItem(key);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // View — inside the app's panel only.
+    if (inPanel) {
+      var asked = new URLSearchParams(location.search).get('keely-view');
+      if (asked === 'prose' || asked === 'site') remember('keely-view', asked);
+      if ((asked || recall('keely-view')) === 'prose') root.setAttribute('data-keely-view', 'prose');
+    }
+
+    // Links in prose view: one handler, ahead of the reader's own.
+    document.addEventListener(
+      'click',
+      function (e) {
+        if (root.getAttribute('data-keely-view') !== 'prose') return;
+        if (!e.target.closest || !e.target.closest('a')) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      },
+      true
+    );
+
+    // Scroll memory, per page. Scene pages scroll inside the prose pane;
+    // other pages scroll the window — both are kept.
+    var scrollKey = 'keely-scroll:' + location.pathname;
+    function proseScroller() {
+      return document.getElementById('prose-pane');
+    }
+    // Saved as you scroll, not on leaving: the app replaces its frame to
+    // reload it, and a removed frame isn't reliably told it's going away.
+    // Capturing on the document catches the prose pane's scrolling too.
+    var saving = false;
+    document.addEventListener(
+      'scroll',
+      function () {
+        if (saving) return;
+        saving = true;
+        setTimeout(function () {
+          saving = false;
+          var pane = proseScroller();
+          remember(scrollKey, JSON.stringify({ win: window.scrollY, pane: pane ? pane.scrollTop : 0 }));
+        }, 150);
+      },
+      true
+    );
+    window.addEventListener('load', function () {
+      var saved = recall(scrollKey);
+      if (!saved) return;
+      try {
+        var pos = JSON.parse(saved);
+        window.scrollTo(0, pos.win || 0);
+        var pane = proseScroller();
+        if (pane) pane.scrollTop = pos.pane || 0;
+      } catch (e) {
+        // A bad saved position just means starting at the top.
+      }
+    });
+
+    // Banner — a normal browser window only.
+    if (!inPanel) {
+      document.addEventListener('DOMContentLoaded', function () {
+        var banner = document.createElement('div');
+        banner.id = 'keely-preview-banner';
+        banner.innerHTML =
+          "<strong>PREVIEW — only you can see this.</strong> Readers can't see this page, and your published site hasn't changed.";
+        document.body.insertBefore(banner, document.body.firstChild);
+      });
+    }
+  })();
+</script>

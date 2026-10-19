@@ -9,7 +9,7 @@ This is an abbreviated fast-path guide to getting a Keely site up and running. I
 Before you start, make sure you have:
 
 - [ ] **Git** — `git --version` to check. Install from [git-scm.com](https://git-scm.com).
-- [ ] **Node.js 18+** — `node --version` to check. Install from [nodejs.org](https://nodejs.org).
+- [ ] **Node.js 22.12+** — `node --version` to check. Install from [nodejs.org](https://nodejs.org).
 - [ ] **A code editor** — VS Code recommended ([code.visualstudio.com](https://code.visualstudio.com)).
 - [ ] **A deployment account** — Netlify recommended ([netlify.com](https://netlify.com)). Optional if working locally only.
 
@@ -22,62 +22,65 @@ Full details: `INSTALL.md`
 A working Keely site needs at minimum:
 
 ```
-src/data/
-  publisher.toml          ← your identity (name required)
-  authors.toml            ← your author bio
-  projects/
-    my-project/
-      project.toml        ← project metadata (title, genre, rating required)
-      characters/
-      places/
-      groups/
-      stories/
-        my-story/
-          story.toml      ← story metadata (title, genre, rating, content_warnings.required)
-          scenes/
-            01-my-scene/
-              index.md    ← your first scene (type, status, narrative_mode required)
+src/
+  content/                    ← your writing, organized by type
+    characters/               ← one folder per character (optional)
+    places/
+    groups/
+    stories/
+      my-story/
+        scenes/
+          01-my-scene/
+            index.md          ← a scene (type, status, narrative_mode required)
+  data/                       ← your settings
+    publisher.toml            ← your identity (name required)
+    authors.toml              ← your author bio
+    genres.json, ratings.json, warnings-vocabulary.json  ← vocabularies; leave as they are
+    projects/
+      my-project/
+        project.toml          ← project metadata (title, genre, rating required)
+        stories/
+          my-story/
+            story.toml        ← story metadata (title, genre, rating, content_warnings.required)
 ```
 
-Copy everything from `template-files/` — all fields are annotated inline.
+The story folder name (`my-story`) appears twice, once under `content/` for its scenes and once under `data/` for its settings, and must match. `template-files/` contains exactly this set, every field annotated inline.
 
 ---
 
 ## Step by Step
 
-**1. Clone the template**
+**1. Clone Keely and copy in the starter site**
 ```bash
-git clone https://github.com/keely-app/keely-template my-project
-cd my-project
+git clone https://github.com/kimboosan/keely-app my-site
+cd my-site
 npm install
+cp -R template-files/content template-files/data src/
 ```
 
 **2. Fill in your publisher identity**
 Open `src/data/publisher.toml` and set your `name`. Open `src/data/authors.toml` and fill in your author entry. Full details: `docs/01_your-first-project.md`
 
-**3. Create your project**
-Copy `template-files/projects/my-project/project.toml` into `src/data/projects/your-project-name/`. Set `title`, `genre`, `rating`, `author.name`, and both `license` fields. Create empty `characters/`, `places/`, `groups/`, and `stories/` folders inside your project folder.
+**3. Make the project yours**
+Rename `src/data/projects/my-project/` to your project's slug (lowercase, hyphens), e.g. `my-novel`. In its `project.toml`, set `title`, `genre`, `rating`, `author.name`, and both `license` fields.
 
-**4. Create your story**
-Copy `template-files/projects/my-project/stories/my-story/story.toml` into `src/data/projects/your-project-name/stories/your-story-name/`. Set `title`, `genre`, `rating`, `completion_status`, and `content_warnings.required`. Create a `scenes/` folder inside your story folder.
+**4. Make the story yours**
+Rename the story folder in **both** places to your story's slug: `src/data/projects/<project>/stories/my-story/` and `src/content/stories/my-story/`. In `story.toml`, set `title`, `genre`, `rating`, `completion_status`, and `content_warnings.required`.
 
-**5. Add your first entities**
-Copy the relevant template from `template-files/` into a named folder inside `characters/`, `places/`, or `groups/`. Name the file `index.md`. Set `name`, `type`, and `project` at minimum. Full details: `docs/02_entities.md`
+**5. Add your entities**
+Rename or copy the starter folders in `src/content/characters/`, `places/`, and `groups/`. Each entity is a folder named with its slug, containing an `index.md`. Set `name`, `type`, and `project` (your project's slug) at minimum. Full details: `docs/02_entities.md`
 
-**6. Rebuild the entity index**
-```bash
-node src/scripts/build-entity-index.mjs
-```
-Run this every time you add or rename entities.
+**6. Write your first scene**
+Edit `src/content/stories/<story>/scenes/01-my-first-scene/index.md`, or copy it into a new numbered folder (e.g. `02-the-next-scene/`). Set `type: scene`, `status: drafting`, and `narrative_mode`. Write your prose below the closing `---`. Full details: `docs/04_writing-scenes.md`
 
-**7. Write your first scene**
-Copy `template-files/projects/my-project/stories/my-story/scenes/my-first-scene/index.md` into a numbered folder inside your `scenes/` folder (e.g. `01-my-first-scene/`). Set `type: scene`, `status: drafting`, and `narrative_mode`. Write your prose below the closing `---`. Full details: `docs/04_writing-scenes.md`
-
-**8. Run the dev server**
+**7. Run the dev server**
 ```bash
 npm run dev
 ```
-Open the local address shown in your terminal. Your site is running.
+Open the local address shown in your terminal. Your site is running, with a yellow **PREVIEW** bar across the top as a reminder that only you can see it.
+
+**8. Added or renamed an entity while the dev server is running?**
+Stop it with `Ctrl+C` and run `npm run dev` again, so its wiki-links resolve. (`npm run dev` and `npm run build` rebuild Keely's entity index each time they start.)
 
 **9. Publish a scene**
 When a scene is ready for readers, set `status: published` in its frontmatter. Add `first_published_date`, `last_published_date` (both set to today), and `word_count`.
@@ -94,10 +97,10 @@ Drag and drop the `dist/` folder onto your Netlify site. Full details: `docs/08_
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Start the local dev server |
-| `npm run build` | Run a full production build (outputs to `dist/`) |
+| `npm run dev` | Rebuild the entity index, then start the local dev server |
+| `npm run build` | Rebuild the entity index, then run a full production build (outputs to `dist/`) |
 | `npm run preview` | Preview the production build locally |
-| `node src/scripts/build-entity-index.mjs` | Rebuild the entity index after adding or renaming entities |
+| `npm run index` | Rebuild the entity index and relationships on their own |
 
 ---
 

@@ -1,8 +1,9 @@
 ---
+import { CACHE } from '../../../../../utils/vault.mjs';
 import { getCollection, render } from 'astro:content';
 import { readFileSync } from 'fs';
 import { marked } from 'marked';
-import { getStoryConfig, getProjects, getStoriesForProject } from '../../../../../utils/config.js';
+import { getStoryConfig, getProjects, getStoriesForProject, formatDate } from '../../../../../utils/config.js';
 import NavPanel from '../../../../../components/NavPanel.astro';
 import BaseLayout from '../../../../../layouts/BaseLayout.astro';
 import ContentWarnings from '../../../../../components/ContentWarnings.astro';
@@ -110,12 +111,12 @@ const sceneCharacters = scene.data.characters_in_scene
   : [];
 
 const entityIndex = JSON.parse(
-  readFileSync('./src/data/entities.json', 'utf-8')
+  readFileSync(`${CACHE}/entities.json`, 'utf-8')
 );
 
 const sceneFolderPrefix = scene.id.replace(/\/index\.md$/, '');
 
-const rawBody = scene.body;
+const rawBody = scene.body ?? '';
 
 const resolvedBody = rawBody
   .replace(/\[\[image:([^\]|]+)\|?([^\]]*)\]\]/g, (match, filename, alt) => {
@@ -126,6 +127,15 @@ const resolvedBody = rawBody
   .replace(/\[\[([^\]]+)\]\]/g, (match, inner) => {
       const [slug, alias] = inner.split('|').map(s => s.trim());
       const entity = entityIndex[slug];
+      // A link to another scene in this story (D-135 offers them in the
+      // app's autocomplete; scene slugs are only unique within a story).
+      // Its own class, not `wiki-link`: reader.js opens wiki-links in the
+      // wiki pane, while scene links navigate the prose pane.
+      const linkedScene = entity ? null : sceneIndex.find(s => s.id === slug);
+      if (linkedScene) {
+        const href = `/${project}/stories/${storySlug}/scenes/${slug}`;
+        return `<a href="${href}" class="scene-link" data-scene="${slug}">${alias ?? linkedScene.title}</a>`;
+      }
       const displayName = alias ?? (entity ? (entity.short_name ?? entity.name) : slug);
       const href = entity ? `/${project}/${entity.urlPrefix}/${slug}` : `/entities/${slug}`;
       return `<a href="${href}" class="wiki-link" data-entity="${slug}">${displayName}</a>`;
@@ -166,6 +176,15 @@ const renderedBody = marked(resolvedBody);
           ))}
         </select>
       </div>
+      {scene.data.word_count && (
+          <p><strong>Word count:</strong> {scene.data.word_count.toLocaleString()}</p>
+        )}
+      {scene.data.first_published_date && (
+        <p><strong>First published:</strong> {formatDate(scene.data.first_published_date)}</p>
+      )}
+      {scene.data.last_published_date && (
+        <p><strong>Last updated:</strong> {formatDate(scene.data.last_published_date)}</p>
+      )}
     </div>
 
 
@@ -177,7 +196,8 @@ const renderedBody = marked(resolvedBody);
 
     <ContentWarnings 
       storyWarnings={storyConfig.content_warnings} 
-      sceneWarnings={scene.data.content_warnings} 
+      sceneWarnings={scene.data.content_warnings}
+      isScenePage={true}
     />
     
     <hr />

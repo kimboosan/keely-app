@@ -1,0 +1,47 @@
+# publisher.toml
+# ==============
+# Lives at: src/data/publisher.toml, alongside authors.toml.
+#
+# Describes the person or press that owns this Keely site. It drives
+# your storefront (the site's home page) and the site header.
+# One publisher.toml per site.
+#
+# Required fields: name. Everything else is optional.
+# -----------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------
+# IDENTITY
+# -----------------------------------------------------------------------
+
+# Your name or your press's name. Shown in the site header and on the
+# storefront. Required.
+name = "My Name"
+
+# A short line shown under your name on the storefront.
+tagline = ""
+
+# A logo shown in the site header instead of your name. Put the image
+# file in the generator's public/images/ folder and give its filename
+# here, e.g. "logo.png". Leave empty to show your name as text.
+logo = ""
+
+
+# -----------------------------------------------------------------------
+# STOREFRONT
+# -----------------------------------------------------------------------
+
+# A welcome message shown on your storefront. Markdown is supported
+# (paragraphs, bold, italic, links). Triple quotes let it run over
+# several lines.
+storefront_blurb = """
+Welcome to my fiction archive.
+"""
+
+# What the storefront calls your collection of projects.
+# Defaults to "Stories".
+projects_label = "Stories"
+
+# The label for the link to your about page (built from authors.toml).
+# Defaults to "About the Author".
+about_label = "About the Author"

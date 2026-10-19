@@ -6,10 +6,10 @@
     "node": ">=22.12.0"
   },
 "scripts": {
-  "dev": "astro dev",
+  "dev": "npm run index && astro dev",
   "build": "npm run index && astro build",
   "preview": "astro preview",
-  "index": "node src/scripts/build-entity-index.mjs && node src/scripts/build-relationships.mjs && node src/scripts/copy-scene-images.mjs",
+  "index": "node src/scripts/index.mjs",
   "astro": "astro",
   "renumber": "node src/scripts/renumber-scenes.mjs"
 },

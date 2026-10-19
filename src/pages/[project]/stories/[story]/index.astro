@@ -1,7 +1,9 @@
 ---
+import { findImage } from '../../../../utils/findImage.js';
 import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
-import { getStoryConfig, getProjectConfig, getProjects, getStoriesForProject } from '../../../../utils/config.js';
+import { getStoryConfig, getProjectConfig, getProjects, getStoriesForProject, formatDate } from '../../../../utils/config.js';
+import ContentWarnings from '../../../../components/ContentWarnings.astro';
 import SiteLayout from '../../../../layouts/SiteLayout.astro';
 
 export async function getStaticPaths() {
@@ -22,6 +24,7 @@ const { project, story: storySlug } = Astro.params;
 const story = getStoryConfig(project, storySlug);
 console.log('story.genre:', story.genre);
 console.log('story.rating:', story.rating);
+const statusClass = `meta-status--${story.completion_status ?? 'unknown'}`;
 const projectConfig = getProjectConfig(project);
 
 const scenes = await getCollection('scenes');
@@ -32,10 +35,20 @@ const sorted = scenes
 
 const firstScene = sorted[0] ?? null;
 
-const allImages = import.meta.glob('/src/data/projects/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const allImages = import.meta.glob('@vault/data/projects/**/*.{jpg,png,webp,gif,svg}', { eager: true });
 const storyBanner = story.banner
-  ? allImages[`/src/data/projects/${project}/stories/${storySlug}/${story.banner}`]?.default
+  ? findImage(allImages, `data/projects/${project}/stories/${storySlug}/${story.banner}`)
   : null;
+
+const formatDate = (raw) => {
+  const d = raw instanceof Date
+    ? new Date(raw.getUTCFullYear(), raw.getUTCMonth(), raw.getUTCDate())
+    : (() => {
+        const [y, m, day] = raw.split('-').map(Number);
+        return new Date(y, m - 1, day);
+      })();
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+};
 ---
 
 <SiteLayout
@@ -70,6 +83,27 @@ const storyBanner = story.banner
       </div>
     )}
 
+    {(story.completion_status || story.start_date || story.expected_chapters) && (
+      <div class="story-status">
+        {story.completion_status && (
+          <span class={`meta-status ${statusClass}`}>
+            <strong>Status:</strong> {story.completion_status === 'in-progress' ? 'In Progress'
+              : story.completion_status === 'complete' ? 'Complete'
+              : story.completion_status === 'hiatus' ? 'On Hiatus'
+              : 'Abandoned'}
+          </span>
+        )}
+        {story.start_date && (
+          <span class="meta-date">
+            <strong>Started:</strong> {formatDate(story.start_date)}
+          </span>
+        )}
+        {story.expected_chapters && (
+          <span class="meta-chapters"><strong>Chapters:</strong> {story.expected_chapters === '?' ? 'TBD' : story.expected_chapters}</span>
+        )}
+      </div>
+    )}
+
     {story.summary && (
       <div class="story-summary">
         <strong>Summary:</strong> {story.summary}
@@ -84,20 +118,7 @@ const storyBanner = story.banner
 
     <a href={`/${project}/stories/${storySlug}/scenes/${firstScene.id.split('/').pop()}`} class="story-start">Start Reading →</a>
 
-    {(story.content_warnings?.required !== 'no-warnings-apply' ||
-      story.content_warnings?.additional?.length > 0 ||
-      story.content_warnings?.custom?.length > 0) && (
-      <div class="story-block story-block--warnings">
-        <h2>Content Warnings</h2>
-        <ul>
-          {story.content_warnings.required !== 'no-warnings-apply' && (
-            <li>{story.content_warnings.required}</li>
-          )}
-          {story.content_warnings.additional?.map(w => <li>{w}</li>)}
-          {story.content_warnings.custom?.map(w => <li>{w}</li>)}
-        </ul>
-      </div>
-    )}
+    <ContentWarnings storyWarnings={story.content_warnings} />
 
     {(story.credits?.beta_readers?.length > 0 ||
       story.credits?.editors?.length > 0) && (

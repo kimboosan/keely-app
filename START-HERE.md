@@ -40,7 +40,7 @@ START-HERE.md           ← you are here
 INSTALL.md              ← installation guide
 LICENSE                 ← MIT license (covers the generator code)
 CONTENT-LICENSE         ← CC0 license (covers the file format specification)
-template-files/         ← annotated template files to copy when adding content
+template-files/         ← a small starter site; copy it into src/ to begin (see INSTALL.md)
 docs/                   ← full documentation set
   01_your-first-project.md
   02_entities.md

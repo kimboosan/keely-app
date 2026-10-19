@@ -1,11 +1,12 @@
+import { CONTENT, CACHE } from '../utils/vault.mjs';
 import { readFileSync, writeFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import matter from 'gray-matter';
 
-const STORIES_DIR = './src/content/stories';
-const CHARACTERS_DIR = './src/content/characters';
-const GROUPS_DIR = './src/content/groups';
-const OUTPUT = './src/data/relationships.json';
+const STORIES_DIR = `${CONTENT}/stories`;
+const CHARACTERS_DIR = `${CONTENT}/characters`;
+const GROUPS_DIR = `${CONTENT}/groups`;
+const OUTPUT = `${CACHE}/relationships.json`;
 
 const characterScenes = {};
 const locationScenes = {};

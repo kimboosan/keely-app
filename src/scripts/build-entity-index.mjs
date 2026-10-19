@@ -1,12 +1,13 @@
+import { CONTENT, DATA, CACHE } from '../utils/vault.mjs';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'smol-toml';
 
-const CONTENT_ROOT = './src/content';
-const PROJECTS_ROOT = './src/data/projects';
-const OUTPUT_PATH = './src/data/entities.json';
-const CUSTOM_TYPES_OUTPUT = './src/data/custom-entity-types.json';
+const CONTENT_ROOT = CONTENT;
+const PROJECTS_ROOT = `${DATA}/projects`;
+const OUTPUT_PATH = `${CACHE}/entities.json`;
+const CUSTOM_TYPES_OUTPUT = `${CACHE}/custom-entity-types.json`;
 
 const BUILTIN_TYPES = new Set(['characters', 'places', 'groups']);
 

@@ -1,7 +1,9 @@
 ---
+import { findImage } from '../../../utils/findImage.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { Image } from 'astro:assets';
-import { getProjectConfig, getPublisherConfig, getProjects, getStoriesForProject } from '../../../utils/config.js';
+import { getProjectConfig, getPublisherConfig, getProjects, getStoriesForProject, formatDate } from '../../../utils/config.js';
+import StoryWarningsBlock from '../../../components/StoryWarningsBlock.astro';
 
 export async function getStaticPaths() {
   const projects = getProjects();
@@ -15,12 +17,12 @@ const project = getProjectConfig(projectSlug);
 const publisher = getPublisherConfig();
 const stories = getStoriesForProject(projectSlug);
 
-const allImages = import.meta.glob('/src/data/projects/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const allImages = import.meta.glob('@vault/data/projects/**/*.{jpg,png,webp,gif,svg}', { eager: true });
 const coverImage = project.cover
-  ? allImages[`/src/data/projects/${projectSlug}/${project.cover}`]?.default
+  ? findImage(allImages, `data/projects/${projectSlug}/${project.cover}`)
   : null;
 const bannerImage = project.banner
-  ? allImages[`/src/data/projects/${projectSlug}/${project.banner}`]?.default
+  ? findImage(allImages, `data/projects/${projectSlug}/${project.banner}`)
   : null;
 ---
 
@@ -51,6 +53,31 @@ const bannerImage = project.banner
             <span class="meta-subgenre">{s}</span>
           ))}
           {project.rating && <span class="meta-rating">{project.rating}</span>}
+        </div>
+      )}
+
+        {(project.created || project.updated || stories.length > 0) && (
+        <div class="story-status">
+          {project.created && (
+            <span class="meta-date"><strong>Created:</strong> {formatDate(project.created)}</span>
+          )}
+          {project.updated && (
+            <span class="meta-date"><strong>Updated:</strong> {formatDate(project.updated)}</span>
+          )}
+          <span class="meta-chapters"><strong>Stories:</strong> {stories.length}</span>
+        </div>
+      )}
+
+      {(project.content_warnings?.additional?.length > 0 ||
+        project.content_warnings?.custom?.length > 0 ||
+        (project.content_warnings?.required && project.content_warnings.required !== 'no-warnings-apply')) ? (
+        <div class="story-block story-block--warnings">
+          <StoryWarningsBlock storyWarnings={project.content_warnings} />
+        </div>
+      ) : (
+        <div class="story-block story-block--warnings">
+          <h2>Content Warnings</h2>
+          <p>No project-wide warnings set. Check individual stories for specific content warnings.</p>
         </div>
       )}
 

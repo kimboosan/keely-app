@@ -1,9 +1,12 @@
 ---
 // ContentWarnings.astro
-const { storyWarnings, sceneWarnings } = Astro.props;
+import StoryWarningsBlock from './StoryWarningsBlock.astro';
+import { getWarningLabel } from '../utils/warnings.js';
+
+const { storyWarnings, sceneWarnings, isScenePage = false } = Astro.props;
 
 const hasStoryWarnings =
-  (storyWarnings?.required && storyWarnings.required !== 'no-warnings-apply') ||
+  !!storyWarnings?.required ||
   storyWarnings?.additional?.length > 0 ||
   storyWarnings?.custom?.length > 0;
 
@@ -11,40 +14,23 @@ const hasSceneWarnings =
   sceneWarnings?.additional?.length > 0 ||
   sceneWarnings?.custom?.length > 0;
 
-const hasAnyWarnings = hasStoryWarnings || hasSceneWarnings;
+const hasAnyWarnings = hasStoryWarnings || (isScenePage && hasSceneWarnings);
 ---
 
-{hasAnyWarnings && (
+{hasAnyWarnings && isScenePage && (
   <div class="cw-wrapper" id="cw-wrapper">
     <button class="cw-toggle" id="cw-toggle" aria-expanded="false" aria-controls="cw-content">
       ⚠ Content warnings — <span id="cw-toggle-label">Show</span>
     </button>
     <div class="cw-content" id="cw-content" hidden>
-      {hasStoryWarnings && (
-        <div class="cw-story">
-          <span class="cw-section-label">Story-wide warnings:</span>
-          <div class="cw-tags">
-            {storyWarnings.required && storyWarnings.required !== 'no-warnings-apply' && (
-              <span class="cw-tag cw-required">{storyWarnings.required.replace(/-/g, ' ')}</span>
-            )}
-            {storyWarnings.additional?.map(w => (
-              <span class="cw-tag">{w.replace(/-/g, ' ')}</span>
-            ))}
-          </div>
-          {storyWarnings.custom?.length > 0 && (
-            <ul class="cw-custom-list">
-              {storyWarnings.custom.map(w => <li>{w}</li>)}
-            </ul>
-          )}
-        </div>
-      )}
+      <StoryWarningsBlock storyWarnings={storyWarnings} />
       <div class="cw-scene">
         <span class="cw-section-label">Additionally in this scene:</span>
         {hasSceneWarnings ? (
           <Fragment>
             <div class="cw-tags">
               {sceneWarnings?.additional?.map(w => (
-                <span class="cw-tag">{w.replace(/-/g, ' ')}</span>
+                <span class="cw-tag">{getWarningLabel(w)}</span>
               ))}
             </div>
             {sceneWarnings?.custom?.length > 0 && (
@@ -60,6 +46,12 @@ const hasAnyWarnings = hasStoryWarnings || hasSceneWarnings;
     </div>
   </div>
 )}
+
+  {hasAnyWarnings && !isScenePage && (
+    <div class="story-block story-block--warnings">
+      <StoryWarningsBlock storyWarnings={storyWarnings} />
+    </div>
+  )}
 
 <style>
   .cw-wrapper {
@@ -85,18 +77,18 @@ const hasAnyWarnings = hasStoryWarnings || hasSceneWarnings;
     margin-top: 0.5rem;
     padding: 0.75rem 1rem;
     background: var(--color-meta-bg, #f5f5f5);
-    border-left: 3px solid var(--color-warning, #c97d00);
+    border-left: 3px solid var(--color-warning-border, #c97d00);
     border-radius: 2px;
   }
 
-  .cw-story {
-    margin-bottom: 0.5rem;
+  .cw-content--static {
+    margin-top: 0;
   }
 
   .cw-scene {
     margin-top: 0.5rem;
     padding-top: 0.5rem;
-    border-top: 1px solid var(--color-warning, #c97d00);
+    border-top: 1px solid var(--color-warning-border, #c97d00);
   }
 
   .cw-section-label {
@@ -117,14 +109,10 @@ const hasAnyWarnings = hasStoryWarnings || hasSceneWarnings;
     display: inline-block;
     padding: 0.15rem 0.5rem;
     background: var(--color-warning-bg, #fff3cd);
-    border: 1px solid var(--color-warning, #c97d00);
+    border: 1px solid var(--color-warning-border, #c97d00);
     border-radius: 3px;
     font-size: 0.8rem;
     text-transform: capitalize;
-  }
-
-  .cw-required {
-    font-weight: bold;
   }
 
   .cw-custom-list {

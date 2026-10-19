@@ -1,0 +1,28 @@
+{
+  "required": [
+    { "slug": "graphic-violence", "label": "Significant violent content" },
+    { "slug": "character-death", "label": "A named character dies" },
+    { "slug": "sexual-content", "label": "Sexual content present" },
+    { "slug": "non-consent", "label": "Non-consensual situations depicted" },
+    { "slug": "creator-chose-not-to-warn", "label": "Creator has chosen not to disclose specific warnings" },
+    { "slug": "no-warnings-apply", "label": "No significant warnings apply to this story" }
+  ],
+  "additional": [
+    { "slug": "grief", "label": "Grief" },
+    { "slug": "death", "label": "Death" },
+    { "slug": "dying", "label": "Dying" },
+    { "slug": "medical-content", "label": "Medical content" },
+    { "slug": "mental-health", "label": "Mental health" },
+    { "slug": "abuse", "label": "Abuse" },
+    { "slug": "alcohol-drugs", "label": "Alcohol/drugs" },
+    { "slug": "strong-language", "label": "Strong language" },
+    { "slug": "sexual-references", "label": "Sexual references" },
+    { "slug": "body-horror", "label": "Body horror" },
+    { "slug": "trauma", "label": "Trauma" },
+    { "slug": "self-harm", "label": "Self-harm" },
+    { "slug": "racism", "label": "racist language and behaviors represented" },
+    { "slug": "misogyny", "label": "hatred of women in language and behavior" },
+    { "slug": "queerphobia", "label": "hatred of LGBTQ+ language and behavior" },
+    { "slug": "transphobia", "label": "hatred of trans individuals represented in language and behavior" }
+  ]
+}

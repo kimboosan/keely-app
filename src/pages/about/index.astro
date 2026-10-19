@@ -1,4 +1,5 @@
 ---
+import { findImage } from '../../utils/findImage.js';
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import { getPublisherConfig, getAuthors } from '../../utils/config.js';
 import { marked } from 'marked';
@@ -7,7 +8,7 @@ import { Image } from 'astro:assets';
 const publisher = getPublisherConfig();
 const authors = getAuthors();
 
-const allImages = import.meta.glob('/src/data/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const allImages = import.meta.glob('@vault/data/**/*.{jpg,png,webp,gif,svg}', { eager: true });
 ---
 
 <SiteLayout
@@ -22,7 +23,7 @@ const allImages = import.meta.glob('/src/data/**/*.{jpg,png,webp,gif,svg}', { ea
     {authors.map(author => {
       const bioHtml = author.bio ? marked(author.bio) : null;
       const portrait = author.portrait
-        ? allImages[`/src/data/${author.portrait}`]?.default
+        ? findImage(allImages, `data/${author.portrait}`)
         : null;
       return (
         <div class="about-author">

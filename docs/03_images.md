@@ -11,11 +11,11 @@ inline image lives in the scene's folder. A project's cover image lives in the p
 with their content means your files are self-contained and portable. If you move a project folder, everything moves with it.
 
 ```
-characters/
+src/content/characters/
   angie-mcdonnell/
     index.md
     angie-portrait.jpg     ← lives here, not in a central images folder
-scenes/
+src/content/stories/my-story/scenes/
   01-the-order/
     index.md
     evacuation-notice.png  ← lives here, alongside the scene
@@ -49,7 +49,8 @@ For decorative images with no meaningful content, use an empty string: `portrait
 
 ### Publisher logo
 
-Set in `publisher.toml` as `logo`. Place the file in `src/data/` and reference it by filename only.
+Set in `publisher.toml` as `logo`. Place the file in the generator's `public/images/` folder and reference it by filename only. (Unlike
+your other images, the logo doesn't live with your content yet.)
 
 ```toml
 logo = "my-press-logo.png"
@@ -166,16 +167,19 @@ gallery:
 
 ## Inline Scene Images
 
-Images can be embedded directly in scene prose using standard markdown image syntax:
+Images can be embedded directly in scene prose using Keely's image syntax:
 
 ```markdown
-![Alt text describing the image](image-filename.jpg)
+[[image:image-filename.jpg|Alt text describing the image]]
 ```
+
+Use this form, not standard markdown image syntax (`![alt](file.jpg)`) — the standard form can't find an image stored in your scene
+folder from the scene's web address, so it shows as a broken image.
 
 Place the image file in the scene's folder alongside `index.md`:
 
 ```
-scenes/
+src/content/stories/my-story/scenes/
   01-the-order/
     index.md
     evacuation-notice.png
@@ -193,8 +197,8 @@ This means:
 - Images in `public/scenes/` are build artifacts — they're in   `.gitignore` and regenerated on every build
 - The only copy of your image that matters is the one in your scene   folder, alongside your `index.md`
 
-If an inline scene image isn't appearing, run a fresh build (`npm run build`) rather than just the dev server — the copy script
-runs as part of the full build pipeline.
+The copy runs whenever `npm run dev` or `npm run build` starts. If you add an inline image while the dev server is running, stop it
+(`Ctrl+C`) and start it again (or run `npm run index`).
 
 ---
 
