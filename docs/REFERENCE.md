@@ -444,9 +444,11 @@ folder:
 [[image:evacuation-notice.png|Alt text describing the image]]
 ```
 
-**Links that don't resolve** — a `[[slug]]` that matches no entity or
-scene is still rendered as a link, but leads nowhere. Check the slug
-against the folder name.
+**Links to things that don't exist yet** — a `[[slug]]` that matches no
+entity or scene shows as a faded, dashed "not yet" link with a "No page
+yet" tooltip; clicking it does nothing. It becomes a real link as soon as
+something with that folder name exists. If you meant an existing page,
+check the slug against its folder name.
 
 **Aliases** — an entity's `aliases` are shown on its page as other names
 it goes by. They don't create links on their own: every link needs
@@ -508,61 +510,62 @@ Scene folders must have a numeric prefix to control reading order:
 ```
 The generator reads folders alphanumerically, so `01-` always comes
 before `02-`. Use zero-padded numbers so ordering stays correct beyond
-nine scenes (`01-` through `09-`, then `10-`).
+nine scenes (`01-` through `09-`, then `10-`). Scene numbers run straight
+through the whole story; they don't restart in each chapter or arc.
 
-To insert a scene between existing scenes, give it a temporary prefix
-that sorts where you want it, then renumber the story:
+To insert or move a scene, give its folder a temporary prefix that sorts
+where you want it, then renumber the story:
 ```
 npm run renumber -- my-story            # dry run
-npm run renumber -- my-story --apply    # renames folders, updates [[links]]
+npm run renumber -- my-story --apply    # renames folders, updates [[links]] in that story
 ```
+Renumbering puts every scene, chapter and arc number (and position
+marker) in order, widens numbers to three digits if the story passes 99
+scenes, and undoes itself completely if anything fails.
 
 ### Container folders (arcs and chapters)
-Stories can be flat (scenes only) or nested (scenes grouped into
-chapters and/or arcs). Nesting is expressed through folder structure,
-not frontmatter.
+Stories can be flat (scenes only) or nested: a story holds scenes,
+chapters and arcs; an arc holds scenes and chapters; a chapter holds only
+scenes. Within any of them, items can sit **in any order** — a prologue
+chapter before the first arc, an epilogue scene after the last.
 
-**Flat:**
+Arc and chapter folders are named `PP_kind-NN-name`:
 ```
 scenes/
-  01-the-order/
-  02-peters-office/
-  03-the-fax/
+  00_chapter-01-prologue/
+    01-the-summons/
+  01_arc-01-setup/
+    01_chapter-02-the-evacuation-order/
+      02-the-order/
+      03-peters-office/
+    03_chapter-03-breakdown/
+      04-vodka-and-theories/
+  04-epilogue/
 ```
-
-**Chapters only:**
-```
-scenes/
-  chapter-01-the-evacuation-order/
-    01-the-order/
-    02-peters-office/
-  chapter-02-breakdown/
-    03-vodka-and-theories/
-```
-
-**Arcs and chapters:**
-```
-scenes/
-  arc-01-setup/
-    chapter-01-the-evacuation-order/
-      01-the-order/
-      02-peters-office/
-    chapter-02-breakdown/
-      03-vodka-and-theories/
-```
-
-Scene numbers run straight through the whole story; they don't restart
-in each chapter or arc.
+- `kind-NN` (`chapter-02`) is the arc's or chapter's own number — the
+  one readers see.
+- `PP_` (`01_`) is a **position marker**: the number of the last scene
+  before it (`00` if none). It only keeps folders in reading order;
+  readers never see it. Two containers in a row with no scene between
+  them get a letter: `04_…`, `04a_…`.
+- `npm run renumber` sets all of these for you.
 
 Container folders do not contain an `index.md` — that file is what
-identifies a folder as a scene. Any folder without `index.md` is
-treated as a container.
+identifies a folder as a scene.
+
+**Older names.** Stories made before v0.7 name arcs and chapters without
+a marker (`arc-01-setup`, `chapter-02-breakdown`). They still work, but
+can only have loose scenes first, then arcs, then chapters. Run
+`npm run renumber -- my-story --apply` once to update them (scene folders
+aren't touched).
 
 ### Container titles
-The reader site names containers from their folder names:
-`chapter-01-the-evacuation-order` becomes
-"Chapter 01: The Evacuation Order", and `arc-01-setup` becomes
-"Arc 01: Setup". Choose folder names that read well as titles.
+An arc or chapter is labelled with its kind, number and title:
+`…_chapter-01-the-evacuation-order` becomes "Chapter 01: The Evacuation
+Order". For a different title, add a `_meta.toml` inside the folder:
+```toml
+title = "When It All Began"
+```
 
 ---
 

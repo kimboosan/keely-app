@@ -1,9 +1,11 @@
 ---
-import { CACHE } from '../../../../../utils/vault.mjs';
+import { CACHE, CONTENT } from '../../../../../utils/vault.mjs';
 import { getCollection, render } from 'astro:content';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
+import { parse as parseToml } from 'smol-toml';
 import { marked } from 'marked';
 import { getStoryConfig, getProjects, getStoriesForProject, formatDate } from '../../../../../utils/config.js';
+import { containerLabel, parseFolderName } from '../../../../../structure/names.mjs';
 import NavPanel from '../../../../../components/NavPanel.astro';
 import BaseLayout from '../../../../../layouts/BaseLayout.astro';
 import ContentWarnings from '../../../../../components/ContentWarnings.astro';
@@ -24,37 +26,38 @@ export async function getStaticPaths() {
         .filter(s => s.id.startsWith(`${story.slug}/`))
         .sort((a, b) => a.id < b.id ? -1 : 1);
 
-      // Build hierarchy from nested ids
+      // The story as it sits on disk, in reading order: arcs, chapters and
+      // loose scenes nested and interleaved however the author placed them
+      // (D-158). Containers are recognised by their folder names (names.mjs),
+      // so this follows actual depth instead of assuming one. A container's
+      // _meta.toml title, when it has one, names it — as in the app.
       const hierarchy = [];
+      const containers = new Map();
       for (const [index, scene] of sorted.entries()) {
         const parts = stripPrefix(scene.id).split('/');
-        const sceneNumber = index + 1;
-
-        if (parts.length === 1) {
-          hierarchy.push({ type: 'scene', scene, sceneNumber });
-        } else if (parts.length === 2) {
-          const chapterSlug = parts[0];
-          let chapter = hierarchy.find(n => n.type === 'chapter' && n.slug === chapterSlug);
-          if (!chapter) {
-            chapter = { type: 'chapter', slug: chapterSlug, label: chapterSlug.replace(/^chapter-(\d+)-(.+)$/, (_, num, rest) => `Chapter ${num}: ${rest.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}`), scenes: [] };
-            hierarchy.push(chapter);
+        let siblings = hierarchy;
+        let path = '';
+        for (const part of parts.slice(0, -1)) {
+          path = path ? `${path}/${part}` : part;
+          let node = containers.get(path);
+          if (!node) {
+            const metaPath = `${CONTENT}/stories/${story.slug}/scenes/${path}/_meta.toml`;
+            let metaTitle;
+            if (existsSync(metaPath)) {
+              try {
+                const title = parseToml(readFileSync(metaPath, 'utf-8')).title;
+                if (typeof title === 'string' && title.trim()) metaTitle = title;
+              } catch {
+                // Unreadable _meta.toml: the folder name gives the title.
+              }
+            }
+            node = { type: parseFolderName(part)?.kind ?? 'chapter', slug: part, label: containerLabel(part, metaTitle), children: [] };
+            containers.set(path, node);
+            siblings.push(node);
           }
-          chapter.scenes.push({ scene, sceneNumber });
-        } else {
-          const arcSlug = parts[0];
-          const chapterSlug = parts[1];
-          let arc = hierarchy.find(n => n.type === 'arc' && n.slug === arcSlug);
-          if (!arc) {
-            arc = { type: 'arc', slug: arcSlug, label: arcSlug.replace(/^arc-(\d+)-(.+)$/, (_, num, rest) => `Arc ${num}: ${rest.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}`), chapters: [] };
-            hierarchy.push(arc);
-          }
-          let chapter = arc.chapters.find(c => c.slug === chapterSlug);
-          if (!chapter) {
-            chapter = { type: 'chapter', slug: chapterSlug, label: chapterSlug.replace(/^chapter-(\d+)-(.+)$/, (_, num, rest) => `Chapter ${num}: ${rest.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}`), scenes: [] };
-            arc.chapters.push(chapter);
-          }
-          chapter.scenes.push({ scene, sceneNumber });
+          siblings = node.children;
         }
+        siblings.push({ type: 'scene', scene, sceneNumber: index + 1 });
       }
 
       sorted.forEach((scene, index) => {
@@ -137,8 +140,15 @@ const resolvedBody = rawBody
         return `<a href="${href}" class="scene-link" data-scene="${slug}">${alias ?? linkedScene.title}</a>`;
       }
       const displayName = alias ?? (entity ? (entity.short_name ?? entity.name) : slug);
-      const href = entity ? `/${project}/${entity.urlPrefix}/${slug}` : `/entities/${slug}`;
-      return `<a href="${href}" class="wiki-link" data-entity="${slug}">${displayName}</a>`;
+      // A link to something not created yet is a "not yet" link (D-156):
+      // no destination, so readers never reach a missing page, and not a
+      // `wiki-link`, so reader.js doesn't try to open it in the wiki pane.
+      // reader.css styles it as faded and dashed; the app's preview still
+      // gets its slug from data-entity (D-154).
+      if (!entity) {
+        return `<a class="unresolved" data-entity="${slug}" title="No page yet">${displayName}</a>`;
+      }
+      return `<a href="/${project}/${entity.urlPrefix}/${slug}" class="wiki-link" data-entity="${slug}">${displayName}</a>`;
     });
 
 const renderedBody = marked(resolvedBody);

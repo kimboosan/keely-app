@@ -13,10 +13,14 @@
 //   `?keely-view=site` shows the full page. The choice is kept in this
 //   frame's sessionStorage, so it holds across reloads; a browser window
 //   never sees it.
-// - **Links in prose view don't respond** to clicks — the wiki pane they
-//   would open is hidden. Every click goes through the one handler below,
-//   on purpose: opening the clicked entity as a tab in the app will replace
-//   "do nothing" there with a message to the app.
+// - **Links in prose view open in the app** (D-154). The wiki pane they
+//   would open on the reader site is hidden, so every click goes through
+//   the one handler below, which tells the app (the parent window) what was
+//   clicked; the app opens it as a tab. Site view keeps the reader's own
+//   behaviour, since it shows what readers get.
+// - **Links that don't lead anywhere yet** (`.unresolved`, set by the scene
+//   page) are styled by reader.css everywhere, preview or not (D-156); in
+//   prose view, clicking one tells the app its slug.
 // - **Scroll memory.** Reloads after a save return to where you were.
 ---
 
@@ -28,9 +32,6 @@
   html[data-keely-view='prose'] #prose-pane > :not(.scene-prose),
   html[data-keely-view='prose'] .scene-prose > .scene-authors-note {
     display: none !important;
-  }
-  html[data-keely-view='prose'] a {
-    cursor: default;
   }
   #keely-preview-banner {
     position: sticky;
@@ -77,14 +78,27 @@
       if ((asked || recall('keely-view')) === 'prose') root.setAttribute('data-keely-view', 'prose');
     }
 
-    // Links in prose view: one handler, ahead of the reader's own.
+    // Links in prose view: one handler, ahead of the reader's own. The app
+    // gets the link's address and, for an unresolved link, its slug; it
+    // decides what opening means. Only the address goes to the parent —
+    // never anything from the page's own state.
     document.addEventListener(
       'click',
       function (e) {
         if (root.getAttribute('data-keely-view') !== 'prose') return;
-        if (!e.target.closest || !e.target.closest('a')) return;
+        var link = e.target.closest && e.target.closest('a');
+        if (!link) return;
         e.preventDefault();
         e.stopImmediatePropagation();
+        window.parent.postMessage(
+          {
+            keely: 'preview-link',
+            href: link.getAttribute('href'),
+            unresolved: link.classList.contains('unresolved'),
+            slug: link.getAttribute('data-entity') || link.getAttribute('data-scene') || null,
+          },
+          '*'
+        );
       },
       true
     );

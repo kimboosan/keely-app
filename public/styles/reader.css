@@ -237,6 +237,17 @@ body.site-layout {
   color: var(--color-link-hover);
 }
 
+/* A "not yet" link: names something the author hasn't created a page for
+   (D-156). Reads as a link to come, not a broken one; clicking does
+   nothing. */
+#prose-pane a.unresolved,
+#prose-pane a.unresolved:hover {
+  color: var(--color-link);
+  opacity: 0.7;
+  text-decoration: underline dashed;
+  cursor: help;
+}
+
 /* ------------------------------------------------------------
    Projects Index page
    ------------------------------------------------------------ */

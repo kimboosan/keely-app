@@ -1,26 +1,20 @@
 ---
-const { hierarchy, currentSceneId, storySlug, projectSlug } = Astro.props;
+// The story's navigation (scene pages). `hierarchy` is the story as it sits
+// on disk, in reading order: arcs, chapters and loose scenes, nested and in
+// any order (D-158) — rendered recursively, with the same markup and
+// classes at every level so reader.js and reader.css keep working.
+const { hierarchy, currentSceneId, storySlug, projectSlug, nested = false } = Astro.props;
+const sceneSlug = (scene) => scene.id.split('/').pop();
+const href = (scene) => `/${projectSlug}/stories/${storySlug}/scenes/${sceneSlug(scene)}`;
 ---
 
-<div id="nav-panel" style="display:none;">
-  <h3>Story Navigation</h3>
-  {hierarchy.map((node) => {
+{nested ? (
+  hierarchy.map((node) => {
     if (node.type === 'arc') {
       return (
         <div class="nav-arc">
           <div class="nav-arc-label">{node.label}</div>
-          {node.chapters.map((chapter) => (
-            <div class="nav-chapter">
-              <div class="nav-chapter-label">{chapter.label}</div>
-              <ul class="nav-scene-list">
-                {chapter.scenes.map(({ scene, sceneNumber }) => (
-                  <li class={scene.id.split('/').pop() === currentSceneId ? 'current' : ''}>
-                    <a href={`/${projectSlug}/stories/${storySlug}/scenes/${scene.id.split('/').pop()}`}>{sceneNumber}. {scene.data.title}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <Astro.self hierarchy={node.children} currentSceneId={currentSceneId} storySlug={storySlug} projectSlug={projectSlug} nested />
         </div>
       );
     }
@@ -29,26 +23,29 @@ const { hierarchy, currentSceneId, storySlug, projectSlug } = Astro.props;
         <div class="nav-chapter">
           <div class="nav-chapter-label">{node.label}</div>
           <ul class="nav-scene-list">
-            {node.scenes.map(({ scene, sceneNumber }) => (
-              <li class={scene.id.split('/').pop() === currentSceneId ? 'current' : ''}>
-                <a href={`/${projectSlug}/stories/${storySlug}/scenes/${scene.id.split('/').pop()}`}>{sceneNumber}. {scene.data.title}</a>
+            {node.children.map(({ scene, sceneNumber }) => (
+              <li class={sceneSlug(scene) === currentSceneId ? 'current' : ''}>
+                <a href={href(scene)}>{sceneNumber}. {scene.data.title}</a>
               </li>
             ))}
           </ul>
         </div>
       );
     }
-    if (node.type === 'scene') {
-      return (
-        <ul class="nav-scene-list">
-          <li class={node.scene.id.split('/').pop() === currentSceneId ? 'current' : ''}>
-            <a href={`/${projectSlug}/stories/${storySlug}/scenes/${node.scene.id.split('/').pop()}`}>{node.sceneNumber}. {node.scene.data.title}</a>
-          </li>
-        </ul>
-      );
-    }
-  })}
-</div>
+    return (
+      <ul class="nav-scene-list">
+        <li class={sceneSlug(node.scene) === currentSceneId ? 'current' : ''}>
+          <a href={href(node.scene)}>{node.sceneNumber}. {node.scene.data.title}</a>
+        </li>
+      </ul>
+    );
+  })
+) : (
+  <div id="nav-panel" style="display:none;">
+    <h3>Story Navigation</h3>
+    <Astro.self hierarchy={hierarchy} currentSceneId={currentSceneId} storySlug={storySlug} projectSlug={projectSlug} nested />
+  </div>
+)}
 <style>
   #nav-panel h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #666; margin-bottom: 0.75rem; }
   #nav-panel .nav-arc { margin-bottom: 1rem; }

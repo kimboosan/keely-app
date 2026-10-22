@@ -11,7 +11,9 @@
   "preview": "astro preview",
   "index": "node src/scripts/index.mjs",
   "astro": "astro",
-  "renumber": "node src/scripts/renumber-scenes.mjs"
+  "renumber": "node src/scripts/restructure.mjs tidy",
+  "restructure": "node src/scripts/restructure.mjs",
+  "test": "node --test src/structure/*.test.mjs"
 },
   "dependencies": {
     "astro": "^6.2.1",

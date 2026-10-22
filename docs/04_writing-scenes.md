@@ -48,31 +48,36 @@ your story has three chapters, the scenes run `01-`, `02-`, `03-`... straight th
 
 ```
 scenes/
-  chapter-01/
+  00_chapter-01-the-order/
     01-the-order/
     02-peters-office/
-  chapter-02/
+  02_chapter-02-the-fax/
     03-the-fax/       ← continues from where chapter 01 left off
     04-breakdown/
 ```
 
+(The `00_` and `02_` in front of the chapter folders are position markers: "after scene 0", "after scene 2". They keep the folders in
+reading order; see `docs/01_your-first-project.md`.)
+
 Use zero-padded numbers so ordering stays correct beyond nine scenes (`001-` through `009-`, then `010-`, `011-`, and so on). Choose a
 descriptive slug for the rest of the name — you'll thank yourself later when navigating a large scene list.
 
-**How much padding do you need?** That depends on your story's length. For stories under 100 scenes, two digits (01- through 99-) is
-sufficient. For longer works — novels with many short scenes, or ongoing serials — use three digits (001- through 999-) from the
-start. It's much easier to pad from the beginning than to renumber 150 scenes later. When in doubt, use three digits.
+**How much padding do you need?** Two digits (01- through 99-) are enough to start with. If you choose three digits from the start,
+Keely keeps them. If a story grows past 99 scenes, renumbering (below) widens every number to three digits for you in one step —
+otherwise `100-…` would sort between `10-…` and `11-…`.
 
-To insert a scene between existing scenes, give the new folder a temporary prefix that sorts where you want it, then let Keely renumber
-the story:
+To insert a scene between existing scenes (or move one), give the folder a temporary prefix that sorts where you want it, then let
+Keely renumber the story:
 
 ```bash
 npm run renumber -- my-story            # dry run: shows what would change
 npm run renumber -- my-story --apply    # renames the folders
 ```
 
-Renumbering also updates every `[[wiki-link]]` to a renamed scene across `src/content/`. Links to scenes in `src/data/` files (author
-notes in `story.toml` or `project.toml`) aren't scanned, so update those by hand.
+Renumbering also updates every `[[wiki-link]]` to a renamed scene **within that story** — scene folder names are only unique within a
+story, so links in other stories and in entity descriptions are left alone. It renumbers chapters and arcs too, and keeps their position
+markers right. If anything goes wrong partway, it undoes itself completely; and it refuses to run over a story that changed since its
+dry run.
 
 ### Copy the template
 
