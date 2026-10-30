@@ -1,11 +1,16 @@
 ---
-import { CACHE, CONTENT } from '../../../../../utils/vault.mjs';
+import { scenesDir } from '../../../../../utils/vault.mjs';
+import { entriesIn, entrySlug } from '../../../../../utils/entries.mjs';
 import { getCollection, render } from 'astro:content';
 import { existsSync, readFileSync } from 'fs';
 import { parse as parseToml } from 'smol-toml';
-import { marked } from 'marked';
-import { getStoryConfig, getProjects, getStoriesForProject, formatDate } from '../../../../../utils/config.js';
+import { renderProse } from '../../../../../utils/externalLinks.mjs';
+import { getStoryConfig, getProjects, getProjectConfig, getStoriesForProject, formatDate } from '../../../../../utils/config.js';
 import { containerLabel, parseFolderName } from '../../../../../structure/names.mjs';
+import { autoLinkShortNames, resolveWikiLinks } from '../../../../../shared/wikiLinks.mjs';
+import { readEntityIndex, readOtherProject } from '../../../../../utils/projectIndex.mjs';
+import { OLD_SCENE_NOTES_FIELD, sceneNotesField } from '../../../../../shared/sceneFields.mjs';
+import { warnOnce } from '../../../../../utils/warnOnce.js';
 import NavPanel from '../../../../../components/NavPanel.astro';
 import BaseLayout from '../../../../../layouts/BaseLayout.astro';
 import ContentWarnings from '../../../../../components/ContentWarnings.astro';
@@ -15,7 +20,7 @@ export async function getStaticPaths() {
   const projects = getProjects();
   const paths = [];
 
-  const stripPrefix = (id) => id.replace(/^[^/]+\/scenes\//, '');
+  const stripPrefix = (id) => id.replace(/^[^/]+\/[^/]+\/scenes\//, '');
 
   for (const project of projects) {
     const stories = getStoriesForProject(project.slug);
@@ -23,7 +28,7 @@ export async function getStaticPaths() {
       const storyConfig = getStoryConfig(project.slug, story.slug);
 
       const sorted = scenes
-        .filter(s => s.id.startsWith(`${story.slug}/`))
+        .filter(s => s.id.startsWith(`${project.slug}/${story.slug}/`))
         .sort((a, b) => a.id < b.id ? -1 : 1);
 
       // The story as it sits on disk, in reading order: arcs, chapters and
@@ -41,7 +46,7 @@ export async function getStaticPaths() {
           path = path ? `${path}/${part}` : part;
           let node = containers.get(path);
           if (!node) {
-            const metaPath = `${CONTENT}/stories/${story.slug}/scenes/${path}/_meta.toml`;
+            const metaPath = `${scenesDir(project.slug, story.slug)}/${path}/_meta.toml`;
             let metaTitle;
             if (existsSync(metaPath)) {
               try {
@@ -101,57 +106,47 @@ const currentSceneSlug = scene.id.split('/').pop();
 const prevSlug = prevScene ? prevScene.id.split('/').pop() : null;
 const nextSlug = nextScene ? nextScene.id.split('/').pop() : null;
 
-const characters = await getCollection('characters');
+const characters = entriesIn(await getCollection('characters'), project);
 const povCharacter = scene.data.pov_character
-  ? characters.find(c => c.id === scene.data.pov_character)
+  ? characters.find(c => entrySlug(c) === scene.data.pov_character)
   : null;
-const places = await getCollection('places');
+const places = entriesIn(await getCollection('places'), project);
 const sceneLocation = scene.data.scene_location
-  ? places.find(p => p.id === scene.data.scene_location)
+  ? places.find(p => entrySlug(p) === scene.data.scene_location)
   : null;
 const sceneCharacters = scene.data.characters_in_scene
-  ? characters.filter(c => scene.data.characters_in_scene.includes(c.id))
+  ? characters.filter(c => scene.data.characters_in_scene.includes(entrySlug(c)))
   : [];
 
-const entityIndex = JSON.parse(
-  readFileSync(`${CACHE}/entities.json`, 'utf-8')
-);
+const entityIndex = readEntityIndex(project);
 
 const sceneFolderPrefix = scene.id.replace(/\/index\.md$/, '');
 
-const rawBody = scene.body ?? '';
+// With the project's `auto_link` on, short names link their own first
+// mention in the scene (D-160) before links are resolved.
+const rawBody = getProjectConfig(project).auto_link === true
+  ? autoLinkShortNames(scene.body ?? '', entityIndex)
+  : (scene.body ?? '');
 
-const resolvedBody = rawBody
-  .replace(/\[\[image:([^\]|]+)\|?([^\]]*)\]\]/g, (match, filename, alt) => {
-    const src = `/scenes/${sceneFolderPrefix}/${filename.trim()}`;
-    const altText = alt.trim() || filename.trim();
-    return `<img src="${src}" alt="${altText}" class="scene-inline-image" loading="lazy">`;
-  })
-  .replace(/\[\[([^\]]+)\]\]/g, (match, inner) => {
-      const [slug, alias] = inner.split('|').map(s => s.trim());
-      const entity = entityIndex[slug];
-      // A link to another scene in this story (D-135 offers them in the
-      // app's autocomplete; scene slugs are only unique within a story).
-      // Its own class, not `wiki-link`: reader.js opens wiki-links in the
-      // wiki pane, while scene links navigate the prose pane.
-      const linkedScene = entity ? null : sceneIndex.find(s => s.id === slug);
-      if (linkedScene) {
-        const href = `/${project}/stories/${storySlug}/scenes/${slug}`;
-        return `<a href="${href}" class="scene-link" data-scene="${slug}">${alias ?? linkedScene.title}</a>`;
-      }
-      const displayName = alias ?? (entity ? (entity.short_name ?? entity.name) : slug);
-      // A link to something not created yet is a "not yet" link (D-156):
-      // no destination, so readers never reach a missing page, and not a
-      // `wiki-link`, so reader.js doesn't try to open it in the wiki pane.
-      // reader.css styles it as faded and dashed; the app's preview still
-      // gets its slug from data-entity (D-154).
-      if (!entity) {
-        return `<a class="unresolved" data-entity="${slug}" title="No page yet">${displayName}</a>`;
-      }
-      return `<a href="/${project}/${entity.urlPrefix}/${slug}" class="wiki-link" data-entity="${slug}">${displayName}</a>`;
-    });
+const resolvedBody = resolveWikiLinks(rawBody, {
+  project,
+  entityIndex,
+  otherProject: readOtherProject,
+  scenes: sceneIndex,
+  storySlug,
+  imageBase: `/scenes/${sceneFolderPrefix}`,
+});
 
-const renderedBody = marked(resolvedBody);
+const renderedBody = renderProse(resolvedBody);
+
+// Author's notes: `author_notes`, or the old `authors_notes` spelling (D-162).
+const notesField = sceneNotesField(scene.data);
+const authorNotes = scene.data[notesField];
+if (notesField === OLD_SCENE_NOTES_FIELD) {
+  warnOnce(
+    `⚠️  ${scene.filePath ?? scene.id}: "authors_notes" is the old spelling. It still works, but rename it to "author_notes".`,
+  );
+}
 ---
 
 <BaseLayout 
@@ -168,16 +163,16 @@ const renderedBody = marked(resolvedBody);
     <h1>{sceneNumber}. {scene.data.title}</h1>
     <div class="scene-meta" data-scene-id={currentSceneSlug}>
       {scene.data.summary && <p><strong>Summary:</strong> {scene.data.summary}</p>}
-      {povCharacter && <p><strong>POV:</strong> <a href={`/${project}/characters/${povCharacter.id}`} class="wiki-link" data-entity={povCharacter.id}>{povCharacter.data.name}</a></p>}
-      {sceneLocation && <p><strong>Location:</strong> <a href={`/${project}/places/${sceneLocation.id}`} class="wiki-link" data-entity={sceneLocation.id}>{sceneLocation.data.name}</a></p>}
-      {sceneCharacters.length > 0 && <p><strong>Characters:</strong> {sceneCharacters.map((c, i) => <><a href={`/${project}/characters/${c.id}`} class="wiki-link" data-entity={c.id}>{c.data.name}</a>{i < sceneCharacters.length - 1 ? ', ' : ''}</>)}</p>}
+      {povCharacter && <p><strong>POV:</strong> <a href={`/${project}/characters/${entrySlug(povCharacter)}`} class="wiki-link" data-entity={entrySlug(povCharacter)}>{povCharacter.data.name}</a></p>}
+      {sceneLocation && <p><strong>Location:</strong> <a href={`/${project}/places/${entrySlug(sceneLocation)}`} class="wiki-link" data-entity={entrySlug(sceneLocation)}>{sceneLocation.data.name}</a></p>}
+      {sceneCharacters.length > 0 && <p><strong>Characters:</strong> {sceneCharacters.map((c, i) => <><a href={`/${project}/characters/${entrySlug(c)}`} class="wiki-link" data-entity={entrySlug(c)}>{c.data.name}</a>{i < sceneCharacters.length - 1 ? ', ' : ''}</>)}</p>}
       {scene.data.narrative_mode && <p><strong>Narrative mode:</strong> {scene.data.narrative_mode}</p>}
       <div class="scene-filter">
         <label for="throughline-select"><strong>Reading thread:</strong></label>
         <select id="throughline-select">
           <option value="linear">All Scenes</option>
           {[...new Set(sceneIndex.filter(s => s.pov).map(s => s.pov))].map(pov => {
-            const char = characters.find(c => c.id === pov);
+            const char = characters.find(c => entrySlug(c) === pov);
             const label = char ? char.data.name : pov;
             return <option value={`pov:${pov}`}>{label}'s POV</option>;
           })}
@@ -198,9 +193,9 @@ const renderedBody = marked(resolvedBody);
     </div>
 
 
-    {scene.data.authors_notes?.top && (
+    {authorNotes?.top && (
       <aside class="scene-authors-note">
-        <strong>Author Note:</strong> <em>{scene.data.authors_notes.top}</em>
+        <strong>Author Note:</strong> <em>{authorNotes.top}</em>
       </aside>
     )}
 
@@ -215,9 +210,9 @@ const renderedBody = marked(resolvedBody);
     <div class="scene-prose">
       <Fragment set:html={renderedBody} />
 
-    {scene.data.authors_notes?.bottom && (
+    {authorNotes?.bottom && (
       <aside class="scene-authors-note scene-authors-note--bottom">
-        <strong>Author Note:</strong> <em>{scene.data.authors_notes.bottom}</em>
+        <strong>Author Note:</strong> <em>{authorNotes.bottom}</em>
       </aside>
       )}
     </div>
@@ -249,9 +244,9 @@ const renderedBody = marked(resolvedBody);
     />
     <div id="scene-info">
       <h2>Scene Info</h2>
-      {povCharacter && <p><strong>POV:</strong> <a href={`/${project}/characters/${povCharacter.id}`}>{povCharacter.data.name}</a></p>}
-      {sceneLocation && <p><strong>Location:</strong> <a href={`/${project}/places/${sceneLocation.id}`}>{sceneLocation.data.name}</a></p>}
-      {sceneCharacters.length > 0 && <p><strong>Characters:</strong> {sceneCharacters.map((c, i) => <><a href={`/${project}/characters/${c.id}`}>{c.data.name}</a>{i < sceneCharacters.length - 1 ? ', ' : ''}</>)}</p>}
+      {povCharacter && <p><strong>POV:</strong> <a href={`/${project}/characters/${entrySlug(povCharacter)}`}>{povCharacter.data.name}</a></p>}
+      {sceneLocation && <p><strong>Location:</strong> <a href={`/${project}/places/${entrySlug(sceneLocation)}`}>{sceneLocation.data.name}</a></p>}
+      {sceneCharacters.length > 0 && <p><strong>Characters:</strong> {sceneCharacters.map((c, i) => <><a href={`/${project}/characters/${entrySlug(c)}`}>{c.data.name}</a>{i < sceneCharacters.length - 1 ? ', ' : ''}</>)}</p>}
       {scene.data.narrative_mode && <p><strong>Narrative mode:</strong> {scene.data.narrative_mode}</p>}
     </div>
     <div id="entity-content" style="display:none;"></div>

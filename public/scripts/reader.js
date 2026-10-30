@@ -27,6 +27,9 @@ if (entry.type === 'scene-info') {
       // entity content is rendered in a separate div
       entityContent.innerHTML = entry.html;
       entityContent.style.display = 'block';
+      // Links inside the entity (its description, its groups…) open in the
+      // pane too, with Back, rather than leaving the scene.
+      wireEntityLinks(entityContent);
     }
     updateControls();
   }
@@ -53,8 +56,8 @@ if (entry.type === 'scene-info') {
       });
 
 // Entity links — wrapped in a function so it can be re-called after prose pane swaps
-  function wireEntityLinks() {
-    document.querySelectorAll('.wiki-link, #scene-info a').forEach(link => {
+  function wireEntityLinks(root = document) {
+    root.querySelectorAll('.wiki-link, #scene-info a:not([rel~="external"])').forEach(link => {
       link.addEventListener('click', async (e) => {
         e.preventDefault();
         const href = link.getAttribute('href');
@@ -64,7 +67,10 @@ if (entry.type === 'scene-info') {
           const parser = new DOMParser();
           const doc = parser.parseFromString(html, 'text/html');
           const content = doc.querySelector('main') || doc.querySelector('body');
-          push({ type: 'entity', html: content ? content.innerHTML : 'No content found.' });
+          // A page from another project says so (D-164).
+          const from = link.dataset.projectName;
+          const fromHtml = from ? `<p class="wiki-from">From <em>${from}</em></p>` : '';
+          push({ type: 'entity', html: content ? fromHtml + content.innerHTML : 'No content found.' });
           if (window.innerWidth < 768) openDrawer();
         } catch (err) {
           push({ type: 'entity', html: 'Could not load entity.' });
@@ -302,87 +308,19 @@ document.getElementById('throughline-select')?.addEventListener('change', (e) =>
 });
 
 // ── Reader Preferences ───────────────────────────────────────────────
+// The ⚙ panel and the warnings/notes preferences live in reader-prefs.js,
+// loaded on every page. Only the wiki pane's default belongs to scene pages.
 
-function applyReaderPreferences() {
-  const hideWarnings = localStorage.getItem('keely-hide-warnings') === 'true';
-  const hideNotes = localStorage.getItem('keely-hide-notes') === 'true';
+document.addEventListener('keely:reader-preferences', () => {
   const wikiCollapsed = localStorage.getItem('keely-wiki-default-collapsed') === 'true';
-
-  // Content warnings — scene level
-  const cwWrapper = document.getElementById('cw-wrapper');
-  if (cwWrapper) cwWrapper.hidden = hideWarnings;
-
-  // Content warnings — story level
-  document.querySelectorAll('.story-block--warnings').forEach(el => {
-    el.hidden = hideWarnings;
-  });
-
-  // Author notes — scene level
-  document.querySelectorAll('.scene-authors-note').forEach(el => {
-    el.hidden = hideNotes;
-  });
-
-  // Author notes — story level
-  document.querySelectorAll('.story-author-note').forEach(el => {
-    el.hidden = hideNotes;
-  });
-
-  // Wiki pane default collapsed state
   if (wikiCollapsed && wikiPaneEl && !localStorage.getItem('wiki-collapsed')) {
     wikiPaneEl.classList.add('collapsed');
     wikiToggle.textContent = '›';
   }
-}
-
-function wireReaderPreferences() {
-  const btn = document.getElementById('reader-prefs-btn');
-  const modal = document.getElementById('reader-prefs-modal');
-  const closeBtn = document.getElementById('reader-prefs-close');
-  const hideWarningsEl = document.getElementById('pref-hide-warnings');
-  const hideNotesEl = document.getElementById('pref-hide-notes');
-  const wikiCollapsedEl = document.getElementById('pref-wiki-collapsed');
-
-  if (!btn || !modal) return;
-
-  // Restore checkbox states from localStorage
-  hideWarningsEl.checked = localStorage.getItem('keely-hide-warnings') === 'true';
-  hideNotesEl.checked = localStorage.getItem('keely-hide-notes') === 'true';
-  wikiCollapsedEl.checked = localStorage.getItem('keely-wiki-default-collapsed') === 'true';
-
-  // Open/close modal
-  btn.addEventListener('click', () => {
-    modal.hidden = !modal.hidden;
-  });
-
-  closeBtn.addEventListener('click', () => {
-    modal.hidden = true;
-  });
-
-  // Close on click outside panel
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.hidden = true;
-  });
-
-  // Toggle handlers — save and apply immediately
-  hideWarningsEl.addEventListener('change', () => {
-    localStorage.setItem('keely-hide-warnings', hideWarningsEl.checked);
-    applyReaderPreferences();
-  });
-
-  hideNotesEl.addEventListener('change', () => {
-    localStorage.setItem('keely-hide-notes', hideNotesEl.checked);
-    applyReaderPreferences();
-  });
-
-  wikiCollapsedEl.addEventListener('change', () => {
-    localStorage.setItem('keely-wiki-default-collapsed', wikiCollapsedEl.checked);
-    applyReaderPreferences();
-  });
-}
+});
 
 // Initialize
   wireEntityLinks();
   wireContentWarnings();
-  wireReaderPreferences();
   applyReaderPreferences();
   updateControls();

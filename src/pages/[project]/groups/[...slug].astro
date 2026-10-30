@@ -1,9 +1,10 @@
 ---
 import { findImage } from '../../../utils/findImage.js';
-import { CACHE } from '../../../utils/vault.mjs';
-import { getCollection, render } from 'astro:content';
+import { getCollection } from 'astro:content';
+import { renderEntityMarkdown } from '../../../utils/markdown.mjs';
+import { readEntityIndex, readRelationships } from '../../../utils/projectIndex.mjs';
+import { entriesIn, entrySlug } from '../../../utils/entries.mjs';
 import { Image } from 'astro:assets';
-import { readFileSync } from 'fs';
 import { getProjects, getProjectConfig } from '../../../utils/config.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { slugify } from '../../../utils/config.js';
@@ -13,9 +14,10 @@ export async function getStaticPaths() {
   const projects = getProjects();
   const paths = [];
   for (const project of projects) {
-    groups.forEach(group => {
+    // Only under the entity's own project (D-159).
+    entriesIn(groups, project.slug).forEach(group => {
       paths.push({
-        params: { project: project.slug, slug: group.id },
+        params: { project: project.slug, slug: entrySlug(group) },
         props: { group },
       });
     });
@@ -23,27 +25,23 @@ export async function getStaticPaths() {
   return paths;
 }
 
-const { project } = Astro.params;
+const { project, slug } = Astro.params;
 const { group } = Astro.props;
-const { Content } = await render(group);
+const bodyHtml = await renderEntityMarkdown(group.body, project);
 const projectConfig = await getProjectConfig(project);
 
-const relationships = JSON.parse(
-  readFileSync(`${CACHE}/relationships.json`, 'utf-8')
-);
-const entityIndex = JSON.parse(
-  readFileSync(`${CACHE}/entities.json`, 'utf-8')
-);
-const members = relationships.groupMembers[group.id] || [];
-const groupRels = relationships.groupRelationships[group.id] || { opposed_to: [], allied_with: [] };
-const mentionedIn = relationships.mentionedIn[group.id] || [];
+const relationships = readRelationships(project);
+const entityIndex = readEntityIndex(project);
+const members = relationships.groupMembers[slug] || [];
+const groupRels = relationships.groupRelationships[slug] || { opposed_to: [], allied_with: [] };
+const mentionedIn = relationships.mentionedIn[slug] || [];
 const mentionedInOnly = mentionedIn.filter(
-  m => !members.some(a => a.slug === m.slug)
+  m => !members.some(a => a.slug === m.slug && a.storySlug === m.storySlug)
 );
 
-const allImages = import.meta.glob('@vault/content/groups/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const allImages = import.meta.glob('@vault/content/projects/*/groups/*/*.{jpg,png,webp,gif,svg}', { eager: true });
 const groupImage = group.data.image
-  ? findImage(allImages, `content/groups/${group.id}/${group.data.image}`)
+  ? findImage(allImages, `content/projects/${project}/groups/${slug}/${group.data.image}`)
   : null;
 ---
 
@@ -91,7 +89,7 @@ const groupImage = group.data.image
     )}
 
     <div class="entity-prose">
-      <Content />
+      <Fragment set:html={bodyHtml} />
     </div>
 
     {members.length > 0 && (

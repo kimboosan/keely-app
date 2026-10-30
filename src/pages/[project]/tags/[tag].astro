@@ -1,26 +1,17 @@
 ---
-import { getCollection } from 'astro:content';
+import { entrySlug } from '../../../utils/entries.mjs';
 import { getProjects, getProjectConfig, slugify } from '../../../utils/config.js';
+import { projectEntityTypes } from '../../../utils/projectEntities.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 
 export async function getStaticPaths() {
   const projects = getProjects();
-  const allCharacters = await getCollection('characters');
-  const allPlaces = await getCollection('places');
-  const allGroups = await getCollection('groups');
-
   const paths = [];
 
   for (const project of projects) {
-    const characters = allCharacters.filter(e => e.data.project.includes(project.slug));
-    const places = allPlaces.filter(e => e.data.project.includes(project.slug));
-    const groups = allGroups.filter(e => e.data.project.includes(project.slug));
-
-    const allEntities = [
-      ...characters.map(e => ({ ...e, entityType: 'characters' })),
-      ...places.map(e => ({ ...e, entityType: 'places' })),
-      ...groups.map(e => ({ ...e, entityType: 'groups' })),
-    ];
+    // Every entity type, built-in and custom (D-086), with the project's entries.
+    const entityTypes = await projectEntityTypes(project.slug);
+    const allEntities = entityTypes.flatMap(t => t.entries);
 
     const tagMap = new Map();
     for (const entity of allEntities) {
@@ -33,7 +24,7 @@ export async function getStaticPaths() {
     for (const [tagSlug, tagLabel] of tagMap) {
       paths.push({
         params: { project: project.slug, tag: tagSlug },
-        props: { tagLabel, allEntities, projectSlug: project.slug },
+        props: { tagLabel, entityTypes, projectSlug: project.slug },
       });
     }
   }
@@ -42,16 +33,13 @@ export async function getStaticPaths() {
 }
 
 const { project } = Astro.params;
-const { tagLabel, allEntities, projectSlug } = Astro.props;
+const { tagLabel, entityTypes, projectSlug } = Astro.props;
 const projectConfig = await getProjectConfig(project);
 
-const tagged = allEntities.filter(e =>
-  (e.data.tags ?? []).some(t => slugify(t) === Astro.params.tag)
-);
-
-const characters = tagged.filter(e => e.entityType === 'characters');
-const places = tagged.filter(e => e.entityType === 'places');
-const groups = tagged.filter(e => e.entityType === 'groups');
+const hasTag = e => (e.data.tags ?? []).some(t => slugify(t) === Astro.params.tag);
+const sections = entityTypes
+  .map(t => ({ ...t, tagged: t.entries.filter(hasTag) }))
+  .filter(t => t.tagged.length > 0);
 ---
 
 <SiteLayout
@@ -62,37 +50,15 @@ const groups = tagged.filter(e => e.entityType === 'groups');
   <main class="tag-page">
     <h1>{tagLabel}</h1>
 
-    {characters.length > 0 && (
+    {sections.map(t => (
       <section class="tag-section">
-        <h2>Characters</h2>
+        <h2>{t.plural}</h2>
         <ul>
-          {characters.map(e => (
-            <li><a href={`/${project}/characters/${e.id}`}>{e.data.name}</a></li>
+          {t.tagged.map(e => (
+            <li><a href={`/${project}/${t.name}/${entrySlug(e)}`}>{e.data.name}</a></li>
           ))}
         </ul>
       </section>
-    )}
-
-    {places.length > 0 && (
-      <section class="tag-section">
-        <h2>Places</h2>
-        <ul>
-          {places.map(e => (
-            <li><a href={`/${project}/places/${e.id}`}>{e.data.name}</a></li>
-          ))}
-        </ul>
-      </section>
-    )}
-
-    {groups.length > 0 && (
-      <section class="tag-section">
-        <h2>Groups</h2>
-        <ul>
-          {groups.map(e => (
-            <li><a href={`/${project}/groups/${e.id}`}>{e.data.name}</a></li>
-          ))}
-        </ul>
-      </section>
-    )}
+    ))}
   </main>
 </SiteLayout>

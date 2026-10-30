@@ -1,0 +1,47 @@
+---
+// The index of one custom entity type in a project (D-086) — the
+// counterpart of the built-in types' index pages, for every custom type the
+// project declares.
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import { getProjects, getProjectConfig } from '../../../utils/config.js';
+import { customTypesOf } from '../../../shared/entityTypes.mjs';
+import { entriesIn, entrySlug } from '../../../utils/entries.mjs';
+import { entriesOf } from '../../../utils/projectEntities.js';
+
+export async function getStaticPaths() {
+  return getProjects().flatMap((project) =>
+    customTypesOf(getProjectConfig(project.slug)).map((declaration) => ({
+      params: { project: project.slug, type: declaration.name },
+      props: { declaration },
+    })),
+  );
+}
+
+const { project, type } = Astro.params;
+const { declaration } = Astro.props;
+const projectConfig = getProjectConfig(project);
+const plural = declaration.plural || type;
+
+const sortName = (entry) => entry.data.name.trim().replace(/^the\s+/i, '').toLowerCase();
+const entries = entriesIn(await entriesOf(type), project)
+  .sort((a, b) => sortName(a).localeCompare(sortName(b)));
+---
+
+<SiteLayout
+  title={`${plural} — ${projectConfig.title}`}
+  backLink={`/${project}/wiki`}
+  backLabel="Wiki"
+>
+  <div class="entity-index">
+    <h1>{plural}</h1>
+    {entries.length === 0 && <p>None yet.</p>}
+    <div class="entity-grid">
+      {entries.map((entry) => (
+        <a class="entity-card" href={`/${project}/${type}/${entrySlug(entry)}`}>
+          <div class="entity-card-name">{entry.data.name}</div>
+          {entry.data.subtype && <div class="entity-card-sub">{entry.data.subtype}</div>}
+        </a>
+      ))}
+    </div>
+  </div>
+</SiteLayout>

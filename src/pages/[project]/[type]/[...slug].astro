@@ -1,0 +1,164 @@
+---
+// A custom entity type's page (D-086) — one generic page for every type an
+// author declares in project.toml, showing its declared fields as the
+// format spec's field-type table describes. Built-in types (characters,
+// places, groups) have their own pages; reserved names never reach here
+// (entityTypes.mjs).
+import { findImage } from '../../../utils/findImage.js';
+import { Image } from 'astro:assets';
+import { getProjects, getProjectConfig, formatDate, slugify } from '../../../utils/config.js';
+import { customTypesOf, customTypeDeclaration } from '../../../shared/entityTypes.mjs';
+import { entriesOf } from '../../../utils/projectEntities.js';
+import { entryProject, entrySlug } from '../../../utils/entries.mjs';
+import { renderEntityMarkdown } from '../../../utils/markdown.mjs';
+import { readEntityIndex, readOtherProject, readRelationships } from '../../../utils/projectIndex.mjs';
+import { resolveWikiLinks } from '../../../shared/wikiLinks.mjs';
+import { warnOnce } from '../../../utils/warnOnce.js';
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+
+export async function getStaticPaths() {
+  const projects = getProjects();
+  const typeNames = [...new Set(projects.flatMap((p) => customTypesOf(getProjectConfig(p.slug)).map((t) => t.name)))];
+  const paths = [];
+  for (const typeName of typeNames) {
+    const entries = await entriesOf(typeName);
+    // Only under the entity's own project (D-159).
+    for (const entry of entries) {
+      const project = entryProject(entry);
+      if (project) paths.push({ params: { project, type: typeName, slug: entrySlug(entry) }, props: { entry } });
+    }
+  }
+  return paths;
+}
+
+const { project, type, slug } = Astro.params;
+const { entry } = Astro.props;
+const projectConfig = getProjectConfig(project);
+const allProjectConfigs = getProjects().map((p) => getProjectConfig(p.slug));
+const declaration = customTypeDeclaration(type, projectConfig, allProjectConfigs);
+const typePlural = declaration?.plural || type;
+const data = entry.data;
+
+const entityIndex = readEntityIndex(project);
+const linkHtml = (value) => {
+  const text = String(value).trim();
+  return resolveWikiLinks(text.startsWith('[[') ? text : `[[${text}]]`, { project, entityIndex, otherProject: readOtherProject });
+};
+const allImages = import.meta.glob('@vault/content/projects/*/*/*/*.{jpg,png,webp,gif,svg}', { eager: true });
+
+const isEmpty = (v) => v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0);
+
+// Each declared field with a value, ready to show. Undeclared frontmatter is
+// ignored, as the spec says; a required field left empty is noted at build.
+const fields = [];
+for (const field of declaration?.fields ?? []) {
+  const value = data[field.name];
+  if (isEmpty(value)) {
+    if (field.required) warnOnce(`⚠️  ${type}/${slug}: required field "${field.name}" is empty.`);
+    continue;
+  }
+  const label = field.label || field.name;
+  switch (field.type) {
+    case 'text':
+      fields.push({ label, html: await renderEntityMarkdown(String(value), project), block: true });
+      break;
+    case 'number':
+      fields.push({ label, text: String(value) });
+      break;
+    case 'boolean':
+      fields.push({ label, text: value ? 'Yes' : 'No' });
+      break;
+    case 'date':
+      fields.push({ label, text: formatDate(value) });
+      break;
+    case 'list':
+      fields.push({ label, list: [].concat(value).map(String) });
+      break;
+    case 'wiki-link':
+      fields.push({ label, html: linkHtml(value) });
+      break;
+    case 'wiki-links':
+      fields.push({ label, html: [].concat(value).map(linkHtml).join(', ') });
+      break;
+    case 'image': {
+      const image = findImage(allImages, `content/projects/${project}/${type}/${slug}/${value}`);
+      if (image) fields.push({ label, image, alt: data[`${field.name}_alt`] ?? '', block: true });
+      else warnOnce(`⚠️  ${type}/${slug}: image "${value}" (field "${field.name}") not found in the entity's folder.`);
+      break;
+    }
+    default: // 'string', and any type the vocabulary doesn't know
+      fields.push({ label, text: String(value) });
+  }
+}
+
+const bodyHtml = await renderEntityMarkdown(entry.body ?? '', project);
+
+const relationships = readRelationships(project);
+const mentionedIn = relationships.mentionedIn[slug] || [];
+---
+
+<SiteLayout
+  title={`${data.name} — ${projectConfig.title}`}
+  backLink={`/${project}/${type}`}
+  backLabel={typePlural}
+>
+  <main class="entity-page">
+    <h1>{data.name}</h1>
+
+    <div class="entity-meta">
+      {data.subtype && <p><strong>Type:</strong> {data.subtype}</p>}
+      {fields.filter((f) => !f.block).map((f) => (
+        <p>
+          <strong>{f.label}:</strong>{' '}
+          {f.html ? <Fragment set:html={f.html} /> : f.list ? f.list.join(', ') : f.text}
+        </p>
+      ))}
+      {data.aliases && data.aliases.length > 0 && (
+        <p><strong>Also known as:</strong> {data.aliases.join(', ')}</p>
+      )}
+    </div>
+
+    {fields.filter((f) => f.block).map((f) =>
+      f.image ? (
+        <div class="entity-portrait">
+          <Image src={f.image} alt={f.alt} width={600} height={400} />
+        </div>
+      ) : (
+        <div class="entity-field">
+          <h2>{f.label}</h2>
+          <Fragment set:html={f.html} />
+        </div>
+      ),
+    )}
+
+    <div class="entity-prose">
+      <Fragment set:html={bodyHtml} />
+    </div>
+
+    {mentionedIn.length > 0 && (
+      <div class="entity-appearances">
+        <h2>Mentioned In</h2>
+        <ul>
+          {mentionedIn.map((scene) => (
+            <li>
+              <a href={`/${project}/stories/${scene.storySlug}/scenes/${scene.slug}`}>{scene.title}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {data.tags && data.tags.length > 0 && (
+      <div class="entity-tags">
+        <h2>Tags</h2>
+        <ul>
+          {data.tags.map((tag) => (
+            <li class="tag">
+              <a href={`/${project}/tags/${slugify(tag)}`}>{tag}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </main>
+</SiteLayout>

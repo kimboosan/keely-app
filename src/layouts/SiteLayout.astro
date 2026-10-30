@@ -1,8 +1,16 @@
 ---
 import { getPublisherConfig } from '../utils/config.js';
 import PreviewMode from '../components/PreviewMode.astro';
+import { getImage } from 'astro:assets';
+import { publisherLogo } from '../utils/publisherLogo.mjs';
 
 const publisher = getPublisherConfig();
+const dataImages = import.meta.glob('@vault/data/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const logo = publisherLogo(publisher.logo, dataImages);
+// The header shows the logo 40px tall (reader.css); the copy made here is
+// twice that, so it stays sharp on high-resolution screens. The author's
+// original file is left as it is.
+const logoUrl = logo?.image ? (await getImage({ src: logo.image, height: 80 })).src : (logo?.url ?? null);
 
 const {
   title,
@@ -20,6 +28,7 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{title}</title>
     <link rel="stylesheet" href="/styles/reader.css" />
+    <script is:inline src="/scripts/reader-prefs.js"></script>
     {import.meta.env.DEV && <PreviewMode />}
   </head>
   <body class="site-layout">
@@ -35,8 +44,8 @@ const {
         {showWikiToggle && <button id="wiki-header-btn">Wiki</button>}
       </div>
       <div id="header-right">
-        {publisher.logo
-          ? <a href="/"><img src={`/images/${publisher.logo}`} alt={publisher.name} id="header-logo" /></a>
+        {logoUrl
+          ? <a href="/"><img src={logoUrl} alt={publisher.name} id="header-logo" /></a>
           : <a href="/" id="header-logo">{publisher.name}</a>
         }
         <button id="reader-prefs-btn" aria-label="Reader preferences" title="Reader preferences">⚙</button>

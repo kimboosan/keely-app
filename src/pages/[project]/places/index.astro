@@ -1,4 +1,5 @@
 ---
+import { entriesIn, entrySlug } from '../../../utils/entries.mjs';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { getCollection } from 'astro:content';
 import { getProjects, getProjectConfig } from '../../../utils/config.js';
@@ -10,7 +11,7 @@ export async function getStaticPaths() {
 
 const { project } = Astro.params;
 const projectConfig = await getProjectConfig(project);
-const allPlaces = (await getCollection('places')).filter(e => e.data.project.includes(project));
+const allPlaces = entriesIn(await getCollection('places'), project);
 
 
 function getSortName(place) {
@@ -36,7 +37,7 @@ const sortedPlaces = [...allPlaces].sort((a, b) =>
     <h1>Places</h1>
     <div class="entity-grid">
       {sortedPlaces.map(place => (
-        <a class="entity-card" href={`/${project}/places/${place.id}`}>
+        <a class="entity-card" href={`/${project}/places/${entrySlug(place)}`}>
           <div class="entity-card-name">{getDisplayName(place)}</div>
           {place.data.function && (
             <div class="entity-card-sub">{place.data.function}</div>

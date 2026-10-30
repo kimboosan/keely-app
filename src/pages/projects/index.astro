@@ -7,7 +7,7 @@ import { Image } from 'astro:assets';
 const publisher = getPublisherConfig();
 const projects = getProjects();
 
-const allImages = import.meta.glob('@vault/data/projects/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const allImages = import.meta.glob(['@vault/content/projects/*/*.{jpg,png,webp,gif,svg}', '@vault/content/projects/*/images/*.{jpg,png,webp,gif,svg}'], { eager: true });
 ---
 
 <SiteLayout
@@ -20,7 +20,7 @@ const allImages = import.meta.glob('@vault/data/projects/**/*.{jpg,png,webp,gif,
     <div class="projects-grid">
       {projects.map(project => {
         const coverImage = project.cover
-          ? findImage(allImages, `data/projects/${project.slug}/${project.cover}`)
+          ? findImage(allImages, `content/projects/${project.slug}/${project.cover}`)
           : null;
         return (
           <a href={`/projects/${project.slug}`} class="project-card">

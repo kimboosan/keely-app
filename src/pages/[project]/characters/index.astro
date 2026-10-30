@@ -1,4 +1,5 @@
 ---
+import { entriesIn, entrySlug } from '../../../utils/entries.mjs';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { getCollection } from 'astro:content';
 import { getProjects, getProjectConfig } from '../../../utils/config.js';
@@ -28,7 +29,7 @@ function getDisplayName(character) {
   return title ? `${surname}, ${title} ${rest}` : `${surname}, ${rest}`;
 }
 
-const allCharacters = (await getCollection('characters')).filter(e => e.data.project.includes(project));
+const allCharacters = entriesIn(await getCollection('characters'), project);
 
 const sortedCharacters = [...allCharacters].sort((a, b) =>
   getSortName(a).localeCompare(getSortName(b))
@@ -45,7 +46,7 @@ const sortedCharacters = [...allCharacters].sort((a, b) =>
     <h1>Characters</h1>
     <div class="entity-grid">
       {sortedCharacters.map(character => (
-        <a class="entity-card" href={`/${project}/characters/${character.id}`}>
+        <a class="entity-card" href={`/${project}/characters/${entrySlug(character)}`}>
           <div class="entity-card-name">{getDisplayName(character)}</div>
           {character.data.occupation && (
             <div class="entity-card-sub">{character.data.occupation}</div>

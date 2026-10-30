@@ -1,5 +1,5 @@
 // Looks up an image from an `import.meta.glob('@vault/...')` result by its
-// path *within the vault* (e.g. `content/characters/li/li.png`).
+// path *within the vault* (e.g. `content/projects/tale/characters/li/li.png`).
 //
 // Glob keys depend on where the vault sits relative to the generator — a
 // vault inside it yields `/src/content/...`, one outside yields

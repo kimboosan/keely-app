@@ -2,18 +2,17 @@
 // engine (D-157). The desktop app runs it with --json; authors who work in
 // files run it directly.
 //
-//   npm run restructure -- show <story>                 the story's current structure
-//   npm run restructure -- tidy <story> [--apply]       renumber cleanly in the current order
-//   npm run restructure -- plan <story> <request|->     preview a new order (JSON request)
-//   npm run restructure -- apply <story> <plan|->       apply a previewed plan (JSON)
-//   npm run restructure -- recover <story>              undo an interrupted change
+//   npm run restructure -- show <project>/<story>                 the story's current structure
+//   npm run restructure -- tidy <project>/<story> [--apply]       renumber cleanly in the current order
+//   npm run restructure -- plan <project>/<story> <request|->     preview a new order (JSON request)
+//   npm run restructure -- apply <project>/<story> <plan|->       apply a previewed plan (JSON)
+//   npm run restructure -- recover <project>/<story>              undo an interrupted change
 //
 // Add --json for machine-readable output: { ok: true, … } or
 // { ok: false, error: { code, message } }. `-` reads the JSON from stdin.
 
 import { readFileSync } from 'fs';
-import { join } from 'path';
-import { CONTENT, CACHE } from '../utils/vault.mjs';
+import { CACHE, scenesDir } from '../utils/vault.mjs';
 import { readStory } from '../structure/read.mjs';
 import { readOutline } from '../structure/outline.mjs';
 import { planRestructure } from '../structure/plan.mjs';
@@ -73,12 +72,12 @@ function printPlan(plan) {
 }
 
 try {
-  const USAGE = 'Usage: npm run restructure -- <show|tidy|plan|apply|recover> <story> [file|-] [--apply] [--json]';
+  const USAGE = 'Usage: npm run restructure -- <show|tidy|plan|apply|recover> <project>/<story> [file|-] [--apply] [--json]';
   if (!command || !storySlug) throw new StructureError('bad-request', USAGE);
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(storySlug)) {
-    throw new StructureError('bad-request', `"${storySlug}" isn't a story folder name.`);
+  if (!/^[a-z0-9][a-z0-9-]*\/[a-z0-9][a-z0-9-]*$/.test(storySlug)) {
+    throw new StructureError('bad-request', `"${storySlug}" isn't a story: use its project and story folder names, like my-project/my-story.`);
   }
-  const scenesRoot = join(CONTENT, 'stories', storySlug, 'scenes');
+  const scenesRoot = scenesDir(...storySlug.split('/'));
 
   if (command === 'recover') {
     const undone = recoverInterrupted(journalPathFor(CACHE, scenesRoot));
@@ -89,7 +88,7 @@ try {
     if (json) out(outline);
     else {
       printTree(outline.tree);
-      if (outline.legacy) console.log('\nThis story uses the older folder names. `npm run renumber -- <story> --apply` updates them.');
+      if (outline.legacy) console.log('\nThis story uses the older folder names. `npm run renumber -- <project>/<story> --apply` updates them.');
     }
   } else if (command === 'tidy' || command === 'plan') {
     const story = await readStory(scenesRoot);

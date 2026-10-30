@@ -1,4 +1,4 @@
-import { DATA } from './vault.mjs';
+import { DATA, projectDir, projectSlugs, storyDir, storySlugs } from './vault.mjs';
 import { readFileSync, readdirSync } from 'fs';
 import { parse } from 'smol-toml';
 
@@ -48,13 +48,8 @@ function assertValidGenre(genre, context) {
 }
 
 export function getProjects() {
-  const projectsPath = `${DATA}/projects`;
-  const projectFolders = readdirSync(projectsPath, { withFileTypes: true })
-    .filter(entry => entry.isDirectory())
-    .map(entry => entry.name);
-
-  return projectFolders.map(slug => {
-    const raw = readFileSync(`${projectsPath}/${slug}/project.toml`, 'utf-8');
+  return projectSlugs().map(slug => {
+    const raw = readFileSync(`${projectDir(slug)}/project.toml`, 'utf-8');
     const config = parse(raw);
 
     assertValidGenre(config.genre, `project "${slug}"`);
@@ -78,18 +73,13 @@ export function getProjects() {
 }
 
 export function getProjectConfig(projectSlug) {
-  const raw = readFileSync(`${DATA}/projects/${projectSlug}/project.toml`, 'utf-8');
+  const raw = readFileSync(`${projectDir(projectSlug)}/project.toml`, 'utf-8');
   return parse(raw);
 }
 
 export function getStoriesForProject(projectSlug) {
-  const storiesPath = `${DATA}/projects/${projectSlug}/stories`;
-  const storyFolders = readdirSync(storiesPath, { withFileTypes: true })
-    .filter(entry => entry.isDirectory())
-    .map(entry => entry.name);
-
-  return storyFolders.map(slug => {
-    const raw = readFileSync(`${storiesPath}/${slug}/story.toml`, 'utf-8');
+  return storySlugs(projectSlug).map(slug => {
+    const raw = readFileSync(`${storyDir(projectSlug, slug)}/story.toml`, 'utf-8');
     const config = parse(raw);
 
     assertValidGenre(config.genre, `story "${slug}" in project "${projectSlug}"`);
@@ -112,10 +102,10 @@ export function getStoriesForProject(projectSlug) {
 }
 
 export function getStoryConfig(projectSlug, storySlug) {
-  const projectRaw = readFileSync(`${DATA}/projects/${projectSlug}/project.toml`, 'utf-8');
+  const projectRaw = readFileSync(`${projectDir(projectSlug)}/project.toml`, 'utf-8');
   const projectConfig = parse(projectRaw);
   
-  const storyRaw = readFileSync(`${DATA}/projects/${projectSlug}/stories/${storySlug}/story.toml`, 'utf-8');
+  const storyRaw = readFileSync(`${storyDir(projectSlug, storySlug)}/story.toml`, 'utf-8');
   const storyConfig = parse(storyRaw);
 
   return {

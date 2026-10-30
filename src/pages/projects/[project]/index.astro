@@ -17,12 +17,12 @@ const project = getProjectConfig(projectSlug);
 const publisher = getPublisherConfig();
 const stories = getStoriesForProject(projectSlug);
 
-const allImages = import.meta.glob('@vault/data/projects/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const allImages = import.meta.glob(['@vault/content/projects/*/*.{jpg,png,webp,gif,svg}', '@vault/content/projects/*/images/*.{jpg,png,webp,gif,svg}'], { eager: true });
 const coverImage = project.cover
-  ? findImage(allImages, `data/projects/${projectSlug}/${project.cover}`)
+  ? findImage(allImages, `content/projects/${projectSlug}/${project.cover}`)
   : null;
 const bannerImage = project.banner
-  ? findImage(allImages, `data/projects/${projectSlug}/${project.banner}`)
+  ? findImage(allImages, `content/projects/${projectSlug}/${project.banner}`)
   : null;
 ---
 
@@ -99,6 +99,12 @@ const bannerImage = project.banner
         </p>
       ))}
     </div>
+
+    {project.author_notes?.bottom && (
+      <div class="project-author-note project-author-note--bottom">
+        {project.author_notes.bottom}
+      </div>
+    )}
 
   </div>
 </SiteLayout>

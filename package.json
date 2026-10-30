@@ -1,21 +1,23 @@
 {
   "name": "keely-app",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.8.0",
   "engines": {
     "node": ">=22.12.0"
   },
-"scripts": {
-  "dev": "npm run index && astro dev",
-  "build": "npm run index && astro build",
-  "preview": "astro preview",
-  "index": "node src/scripts/index.mjs",
-  "astro": "astro",
-  "renumber": "node src/scripts/restructure.mjs tidy",
-  "restructure": "node src/scripts/restructure.mjs",
-  "test": "node --test src/structure/*.test.mjs"
-},
+  "scripts": {
+    "dev": "npm run index && astro dev",
+    "build": "npm run index && astro build",
+    "preview": "astro preview",
+    "index": "node src/scripts/index.mjs",
+    "astro": "astro",
+    "renumber": "node src/scripts/restructure.mjs tidy",
+    "restructure": "node src/scripts/restructure.mjs",
+    "migrate-layout": "node src/scripts/migrate-layout.mjs",
+    "test": "node --test src/structure/*.test.mjs src/shared/*.test.mjs src/migrate/*.test.mjs"
+  },
   "dependencies": {
+    "@astrojs/markdown-remark": "7.1.1",
     "astro": "^6.2.1",
     "gray-matter": "^4.0.3",
     "marked": "^18.0.3",

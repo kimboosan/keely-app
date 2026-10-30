@@ -1,6 +1,6 @@
 ---
-import { getCollection } from 'astro:content';
 import { getProjects, getProjectConfig, slugify } from '../../../utils/config.js';
+import { projectEntityTypes } from '../../../utils/projectEntities.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 
 export async function getStaticPaths() {
@@ -14,11 +14,8 @@ export async function getStaticPaths() {
 const { project } = Astro.params;
 const projectConfig = await getProjectConfig(project);
 
-const characters = (await getCollection('characters')).filter(e => e.data.project.includes(project));
-const places = (await getCollection('places')).filter(e => e.data.project.includes(project));
-const groups = (await getCollection('groups')).filter(e => e.data.project.includes(project));
-
-const allEntities = [...characters, ...places, ...groups];
+// Every entity type's entries, built-in and custom (D-086).
+const allEntities = (await projectEntityTypes(project)).flatMap(t => t.entries);
 
 // Build a map of tag slug → display label, sorted alphabetically
 const tagMap = new Map();

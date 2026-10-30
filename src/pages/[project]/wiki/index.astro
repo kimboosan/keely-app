@@ -1,7 +1,8 @@
 ---
+import { entrySlug } from '../../../utils/entries.mjs';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { getProjectConfig } from '../../../utils/config.js';
-import { getCollection } from 'astro:content';
+import { projectEntityTypes } from '../../../utils/projectEntities.js';
 
 export async function getStaticPaths() {
   const { getProjects } = await import('../../../utils/config.js');
@@ -12,9 +13,8 @@ export async function getStaticPaths() {
 const { project } = Astro.params;
 const projectConfig = await getProjectConfig(project);
 
-const allCharacters = (await getCollection('characters')).filter(e => e.data.project.includes(project));
-const allPlaces = (await getCollection('places')).filter(e => e.data.project.includes(project));
-const allGroups = (await getCollection('groups')).filter(e => e.data.project.includes(project));
+// Built-in types, then the project's custom types (D-086).
+const entityTypes = await projectEntityTypes(project);
 ---
 
 <SiteLayout
@@ -25,49 +25,21 @@ const allGroups = (await getCollection('groups')).filter(e => e.data.project.inc
   <div class="wiki-index">
     <h1>Wiki</h1>
 
-    <section class="wiki-index-section">
-      <h2>
-        <a href={`/${project}/characters`}>Characters</a>
-      </h2>
-      <ul class="wiki-index-list">
-        {allCharacters.map(character => (
-          <li>
-            <a href={`/${project}/characters/${character.id}`}>
-              {character.data.name}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-
-    <section class="wiki-index-section">
-      <h2>
-        <a href={`/${project}/places`}>Places</a>
-      </h2>
-      <ul class="wiki-index-list">
-        {allPlaces.map(place => (
-          <li>
-            <a href={`/${project}/places/${place.id}`}>
-              {place.data.name}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-
-    <section class="wiki-index-section">
-      <h2>
-        <a href={`/${project}/groups`}>Groups</a>
-      </h2>
-      <ul class="wiki-index-list">
-        {allGroups.map(group => (
-          <li>
-            <a href={`/${project}/groups/${group.id}`}>
-              {group.data.name}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
+    {entityTypes.map(t => (
+      <section class="wiki-index-section">
+        <h2>
+          <a href={`/${project}/${t.name}`}>{t.plural}</a>
+        </h2>
+        <ul class="wiki-index-list">
+          {t.entries.map(entry => (
+            <li>
+              <a href={`/${project}/${t.name}/${entrySlug(entry)}`}>
+                {entry.data.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
   </div>
 </SiteLayout>

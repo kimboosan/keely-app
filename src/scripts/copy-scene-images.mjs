@@ -1,9 +1,8 @@
-import { CONTENT } from '../utils/vault.mjs';
+import { projectSlugs, scenesDir, storySlugs } from '../utils/vault.mjs';
 import { readdirSync, copyFileSync, mkdirSync, existsSync } from 'fs';
 import { join, extname } from 'path';
 
 const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg']);
-const SCENES_SRC = `${CONTENT}/stories`;
 const SCENES_DEST = './public/scenes';
 
 function copySceneImages(srcDir, destDir, relativePath = '') {
@@ -25,5 +24,13 @@ function copySceneImages(srcDir, destDir, relativePath = '') {
   }
 }
 
-copySceneImages(SCENES_SRC, SCENES_DEST);
+// By project and story: `/scenes/{project}/{story}/scenes/...` matches a
+// scene's collection id (entries.mjs), and two projects' stories can share
+// a name (D-166).
+for (const project of projectSlugs()) {
+  for (const story of storySlugs(project)) {
+    const scenes = scenesDir(project, story);
+    if (existsSync(scenes)) copySceneImages(scenes, SCENES_DEST, `${project}/${story}/scenes`);
+  }
+}
 console.log('✅ Scene images copied to public/scenes/');

@@ -83,6 +83,21 @@ body.site-layout {
   z-index: 10;
 }
 
+/* The logo (or name) and the ⚙ button sit side by side. */
+#header-right {
+  display: flex;
+  align-items: center;
+}
+
+/* The publisher's logo: header height, its width following the logo's shape. */
+img#header-logo {
+  display: block;
+  height: 40px;
+  width: auto;
+  max-width: 240px;
+  object-fit: contain;
+}
+
 #site-header a {
   color: var(--color-header-text);
   text-decoration: none;
@@ -246,6 +261,22 @@ body.site-layout {
   opacity: 0.7;
   text-decoration: underline dashed;
   cursor: help;
+}
+
+/* A link to another website (D-164): opens in a new tab, and the ↗ says
+   so before the reader clicks. */
+a[rel~="external"]::after {
+  content: "\00a0↗";
+  font-size: 0.8em;
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* Above a page from another project in the wiki pane (D-164). */
+.wiki-from {
+  font-size: 0.8em;
+  opacity: 0.75;
+  margin: 0 0 0.75rem;
 }
 
 /* ------------------------------------------------------------

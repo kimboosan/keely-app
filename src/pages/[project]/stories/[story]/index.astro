@@ -30,14 +30,14 @@ const projectConfig = getProjectConfig(project);
 const scenes = await getCollection('scenes');
 
 const sorted = scenes
-  .filter(s => s.id.startsWith(`${storySlug}/scenes/`))
+  .filter(s => s.id.startsWith(`${project}/${storySlug}/scenes/`))
   .sort((a, b) => a.id.localeCompare(b.id));
 
 const firstScene = sorted[0] ?? null;
 
-const allImages = import.meta.glob('@vault/data/projects/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const allImages = import.meta.glob('@vault/content/projects/*/stories/*/*.{jpg,png,webp,gif,svg}', { eager: true });
 const storyBanner = story.banner
-  ? findImage(allImages, `data/projects/${project}/stories/${storySlug}/${story.banner}`)
+  ? findImage(allImages, `content/projects/${project}/stories/${storySlug}/${story.banner}`)
   : null;
 
 const formatDate = (raw) => {
@@ -151,6 +151,12 @@ const formatDate = (raw) => {
         {story.acknowledgments.thanks_to?.length > 0 && (
           <p><strong>Thanks to:</strong> {story.acknowledgments.thanks_to.join(', ')}</p>
         )}
+      </div>
+    )}
+
+    {story.author_notes?.bottom && (
+      <div class="story-author-note story-author-note--bottom">
+        <strong>Author Note:</strong> {story.author_notes.bottom}
       </div>
     )}
 

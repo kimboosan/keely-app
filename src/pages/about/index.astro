@@ -2,7 +2,7 @@
 import { findImage } from '../../utils/findImage.js';
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import { getPublisherConfig, getAuthors } from '../../utils/config.js';
-import { marked } from 'marked';
+import { renderProse } from '../../utils/externalLinks.mjs';
 import { Image } from 'astro:assets';
 
 const publisher = getPublisherConfig();
@@ -21,7 +21,7 @@ const allImages = import.meta.glob('@vault/data/**/*.{jpg,png,webp,gif,svg}', { 
     <h1>About</h1>
 
     {authors.map(author => {
-      const bioHtml = author.bio ? marked(author.bio) : null;
+      const bioHtml = author.bio ? renderProse(author.bio) : null;
       const portrait = author.portrait
         ? findImage(allImages, `data/${author.portrait}`)
         : null;

@@ -1,9 +1,10 @@
 ---
 import { findImage } from '../../../utils/findImage.js';
-import { CACHE } from '../../../utils/vault.mjs';
-import { getCollection, render } from 'astro:content';
+import { getCollection } from 'astro:content';
+import { renderEntityMarkdown } from '../../../utils/markdown.mjs';
+import { readRelationships } from '../../../utils/projectIndex.mjs';
+import { entriesIn, entrySlug } from '../../../utils/entries.mjs';
 import { Image } from 'astro:assets';
-import { readFileSync } from 'fs';
 import { getProjects, getProjectConfig } from '../../../utils/config.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { slugify } from '../../../utils/config.js';
@@ -13,9 +14,10 @@ export async function getStaticPaths() {
   const projects = getProjects();
   const paths = [];
   for (const project of projects) {
-    characters.forEach(character => {
+    // Only under the entity's own project (D-159).
+    entriesIn(characters, project.slug).forEach(character => {
       paths.push({
-        params: { project: project.slug, slug: character.id },
+        params: { project: project.slug, slug: entrySlug(character) },
         props: { character },
       });
     });
@@ -23,23 +25,21 @@ export async function getStaticPaths() {
   return paths;
 }
 
-const { project } = Astro.params;
+const { project, slug } = Astro.params;
 const { character } = Astro.props;
-const { Content } = await render(character);
+const bodyHtml = await renderEntityMarkdown(character.body, project);
 const projectConfig = await getProjectConfig(project);
 
-const relationships = JSON.parse(
-  readFileSync(`${CACHE}/relationships.json`, 'utf-8')
-);
-const appearsIn = relationships.characterScenes[character.id] || [];
-const mentionedIn = relationships.mentionedIn[character.id] || [];
+const relationships = readRelationships(project);
+const appearsIn = relationships.characterScenes[slug] || [];
+const mentionedIn = relationships.mentionedIn[slug] || [];
 const mentionedInOnly = mentionedIn.filter(
-  m => !appearsIn.some(a => a.slug === m.slug)
+  m => !appearsIn.some(a => a.slug === m.slug && a.storySlug === m.storySlug)
 );
 
-const allImages = import.meta.glob('@vault/content/characters/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const allImages = import.meta.glob('@vault/content/projects/*/characters/*/*.{jpg,png,webp,gif,svg}', { eager: true });
 const portraitImage = character.data.portrait
-  ? findImage(allImages, `content/characters/${character.id}/${character.data.portrait}`)
+  ? findImage(allImages, `content/projects/${project}/characters/${slug}/${character.data.portrait}`)
   : null;
 
 function getDisplayName(character) {
@@ -85,7 +85,7 @@ function getDisplayName(character) {
         </div>
       )}
     <div class="entity-prose">
-      <Content />
+      <Fragment set:html={bodyHtml} />
     </div>
 
     {appearsIn.length > 0 && (

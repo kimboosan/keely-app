@@ -1,9 +1,10 @@
 ---
 import { findImage } from '../../../utils/findImage.js';
-import { CACHE } from '../../../utils/vault.mjs';
-import { getCollection, render } from 'astro:content';
+import { getCollection } from 'astro:content';
+import { renderEntityMarkdown } from '../../../utils/markdown.mjs';
+import { readRelationships } from '../../../utils/projectIndex.mjs';
+import { entriesIn, entrySlug } from '../../../utils/entries.mjs';
 import { Image } from 'astro:assets';
-import { readFileSync } from 'fs';
 import { getProjects, getProjectConfig } from '../../../utils/config.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { slugify } from '../../../utils/config.js';
@@ -13,9 +14,10 @@ export async function getStaticPaths() {
   const projects = getProjects();
   const paths = [];
   for (const project of projects) {
-    places.forEach(place => {
+    // Only under the entity's own project (D-159).
+    entriesIn(places, project.slug).forEach(place => {
       paths.push({
-        params: { project: project.slug, slug: place.id },
+        params: { project: project.slug, slug: entrySlug(place) },
         props: { place },
       });
     });
@@ -23,22 +25,20 @@ export async function getStaticPaths() {
   return paths;
 }
 
-const { project } = Astro.params;
+const { project, slug } = Astro.params;
 const { place } = Astro.props;
-const { Content } = await render(place);
+const bodyHtml = await renderEntityMarkdown(place.body, project);
 const projectConfig = await getProjectConfig(project);
 
-const relationships = JSON.parse(
-  readFileSync(`${CACHE}/relationships.json`, 'utf-8')
-);
-const scenesAtLocation = relationships.locationScenes[place.id] || [];
-const mentionedIn = relationships.mentionedIn[place.id] || [];
+const relationships = readRelationships(project);
+const scenesAtLocation = relationships.locationScenes[slug] || [];
+const mentionedIn = relationships.mentionedIn[slug] || [];
 const mentionedInOnly = mentionedIn.filter(
-  m => !scenesAtLocation.some(a => a.slug === m.slug)
+  m => !scenesAtLocation.some(a => a.slug === m.slug && a.storySlug === m.storySlug)
 );
-const allImages = import.meta.glob('@vault/content/places/**/*.{jpg,png,webp,gif,svg}', { eager: true });
+const allImages = import.meta.glob('@vault/content/projects/*/places/*/*.{jpg,png,webp,gif,svg}', { eager: true });
 const placeImage = place.data.image
-  ? findImage(allImages, `content/places/${place.id}/${place.data.image}`)
+  ? findImage(allImages, `content/projects/${project}/places/${slug}/${place.data.image}`)
   : null;
 
 ---
@@ -84,7 +84,7 @@ const placeImage = place.data.image
     )}
 
     <div class="entity-prose">
-      <Content />
+      <Fragment set:html={bodyHtml} />
     </div>
 
     {scenesAtLocation.length > 0 && (

@@ -1,4 +1,4 @@
-import { CONTENT, CACHE } from './utils/vault.mjs';
+import { CACHE, PROJECTS, projectDir, projectSlugs } from './utils/vault.mjs';
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { readFileSync, existsSync } from 'fs';
@@ -24,12 +24,21 @@ try {
   // JSON not yet generated — no custom types registered this build.
 }
 
+// Every entity is `{project}/{type}/{slug}/index.md`, and its id is
+// `{project}/{slug}`: a slug is only unique within its project (D-166).
+// entries.mjs reads these ids.
+const entityLoader = (type: string) =>
+  glob({
+    pattern: `*/${type}/*/index.md`,
+    base: PROJECTS,
+    generateId: ({ entry }) => entry.replace(`/${type}/`, '/').replace(/\/index\.md$/, ''),
+  });
+
 // Universal fields present on every custom entity type.
 // .passthrough() preserves all author-declared custom fields in entry.data.
 const customEntitySchema = z.object({
   name: z.string(),
   type: z.string(),
-  project: z.array(z.string()),
   subtype: z.string().optional(),
   short_name: z.string().optional(),
   aliases: z.array(z.string()).optional(),
@@ -39,11 +48,10 @@ const customEntitySchema = z.object({
 const customCollections = Object.fromEntries(
   customTypeNames
     .filter(typeName => {
-      const base = `${CONTENT}/${typeName}`;
-      if (!existsSync(base)) {
+      if (!projectSlugs().some(project => existsSync(`${projectDir(project)}/${typeName}`))) {
         console.warn(
           `[Keely] Custom entity type "${typeName}" is declared in project.toml ` +
-          `but src/content/${typeName}/ does not exist. ` +
+          `but no project has a ${typeName}/ folder. ` +
           `Create the folder or remove the declaration.`
         );
         return false;
@@ -53,7 +61,7 @@ const customCollections = Object.fromEntries(
     .map(typeName => [
       typeName,
       defineCollection({
-        loader: glob({ pattern: '**/index.md', base: `${CONTENT}/${typeName}` }),
+        loader: entityLoader(typeName),
         schema: customEntitySchema,
       }),
     ])
@@ -62,7 +70,7 @@ const customCollections = Object.fromEntries(
 // ─── Built-in collections ─────────────────────────────────────────────────────
 
 const charactersCollection = defineCollection({
-  loader: glob({ pattern: '**/index.md', base: `${CONTENT}/characters` }),
+  loader: entityLoader('characters'),
   schema: z.object({
     // Identity
     name: z.string(),
@@ -75,7 +83,6 @@ const charactersCollection = defineCollection({
     subtype: z.string().optional(),
 
     // Project membership (D-080)
-    project: z.array(z.string()),
 
     // Role and function
     role: z.enum(['main', 'secondary', 'minor', 'background']).optional(),
@@ -108,7 +115,7 @@ const charactersCollection = defineCollection({
 });
 
 const placesCollection = defineCollection({
-  loader: glob({ pattern: '**/index.md', base: `${CONTENT}/places` }),
+  loader: entityLoader('places'),
   schema: z.object({
     // Identity
     name: z.string(),
@@ -119,7 +126,6 @@ const placesCollection = defineCollection({
     function: z.string().optional(),
 
     // Project membership (D-080)
-    project: z.array(z.string()),
 
     // Place-specific
     scope: z.enum(['primary', 'secondary', 'minor', 'background']).optional(),
@@ -145,7 +151,7 @@ const placesCollection = defineCollection({
 });
 
 const groupsCollection = defineCollection({
-  loader: glob({ pattern: '**/index.md', base: `${CONTENT}/groups` }),
+  loader: entityLoader('groups'),
   schema: z.object({
     // Identity
     name: z.string(),
@@ -156,7 +162,6 @@ const groupsCollection = defineCollection({
     function: z.string().optional(),
 
     // Project membership (D-080)
-    project: z.array(z.string()),
 
     // Group-specific
     scope: z.enum(['minor', 'major', 'dominant']).optional(),
@@ -182,7 +187,12 @@ const groupsCollection = defineCollection({
 });
 
 const scenesCollection = defineCollection({
-  loader: glob({ pattern: '**/index.md', base: `${CONTENT}/stories` }),
+  // A scene's id is `{project}/{story}/scenes/...`.
+  loader: glob({
+    pattern: '*/stories/*/scenes/**/index.md',
+    base: PROJECTS,
+    generateId: ({ entry }) => entry.replace('/stories/', '/').replace(/\/index\.md$/, ''),
+  }),
   schema: z.object({
     // Identity & workflow
     title: z.string().optional(),
@@ -200,6 +210,11 @@ const scenesCollection = defineCollection({
       additional: z.array(z.string()).optional(),
       custom: z.array(z.string()).optional(),
     }).optional(),
+    author_notes: z.object({
+      top: z.string().optional(),
+      bottom: z.string().optional(),
+    }).optional(),
+    // The old spelling (D-162): still read, with a build note.
     authors_notes: z.object({
       top: z.string().optional(),
       bottom: z.string().optional(),
