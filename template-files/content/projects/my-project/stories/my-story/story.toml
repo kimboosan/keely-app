@@ -1,7 +1,7 @@
 # story.toml
 # ==========
-# Lives at: src/data/projects/my-project/stories/my-story/story.toml
-# Its scenes live separately, in src/content/stories/my-story/scenes/ —
+# Lives at: src/content/projects/my-project/stories/my-story/story.toml
+# Its scenes live separately, in src/content/projects/my-project/stories/my-story/scenes/ —
 # the two story folders must have the same name.
 #
 # This file declares the metadata for a single story within your project.
@@ -27,10 +27,6 @@ title = "My Story"
 # A one-line hook shown in browse listings and the story header.
 # If omitted, no tagline appears.
 tagline = ""
-
-# The URL slug for this story. If omitted, defaults to the folder name.
-# Only set this if you want the URL to differ from your folder name.
-# slug = "my-story"
 
 # The blurb readers see before they start reading — your story's back-cover
 # copy. Supports markdown. If omitted, no summary appears.

@@ -11,11 +11,11 @@ inline image lives in the scene's folder. A project's cover image lives in the p
 with their content means your files are self-contained and portable. If you move a project folder, everything moves with it.
 
 ```
-src/content/characters/
+src/content/projects/my-project/characters/
   angie-mcdonnell/
     index.md
     angie-portrait.jpg     ← lives here, not in a central images folder
-src/content/stories/my-story/scenes/
+src/content/projects/my-project/stories/my-story/scenes/
   01-the-order/
     index.md
     evacuation-notice.png  ← lives here, alongside the scene
@@ -49,8 +49,8 @@ For decorative images with no meaningful content, use an empty string: `portrait
 
 ### Publisher logo
 
-Set in `publisher.toml` as `logo`. Place the file in the generator's `public/images/` folder and reference it by filename only. (Unlike
-your other images, the logo doesn't live with your content yet.)
+Set in `publisher.toml` as `logo`. Place the file in `src/data/` (or a folder inside it, such as `src/data/images/`) and give its path
+from there.
 
 ```toml
 logo = "my-press-logo.png"
@@ -179,7 +179,7 @@ folder from the scene's web address, so it shows as a broken image.
 Place the image file in the scene's folder alongside `index.md`:
 
 ```
-src/content/stories/my-story/scenes/
+src/content/projects/my-project/stories/my-story/scenes/
   01-the-order/
     index.md
     evacuation-notice.png

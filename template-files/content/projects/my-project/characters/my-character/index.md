@@ -1,10 +1,10 @@
 ---
 # index.md — Character file
 # ==========================
-# Lives at: src/content/characters/my-character/index.md
+# Lives at: src/content/projects/my-project/characters/my-character/index.md
 # The folder name is the character's slug and becomes their URL.
 #
-# Required fields: name, type, project.
+# Required fields: name, type.
 # Everything else is optional — omit any field you don't need and
 # it will not appear on the page.
 # -----------------------------------------------------------------------
@@ -118,15 +118,6 @@ related_to:
 # If omitted, no tags appear.
 tags: []
 
-
-# -----------------------------------------------------------------------
-# PROJECT MEMBERSHIP
-# -----------------------------------------------------------------------
-# Which project(s) this character belongs to.
-# Use the project folder name (slug), not the display title.
-# Required for the generator to index this character correctly.
-project:
-  - "my-project"
 
 ---
 

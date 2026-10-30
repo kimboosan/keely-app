@@ -26,8 +26,8 @@ something new.
 
 Everything you write lives in two folders:
 
-- **`src/content/`** — your writing, organized by type: `characters/`, `places/`, `groups/`, any custom entity types, and `stories/` for scenes.
-- **`src/data/`** — your settings: `publisher.toml`, `authors.toml`, and `projects/`, which holds each project's `project.toml` and each story's `story.toml`.
+- **`src/content/projects/`** — one folder per project, holding everything it owns: `project.toml`, `characters/`, `places/`, `groups/`, any custom entity types, and `stories/`.
+- **`src/data/`** — your site-wide settings: `publisher.toml` and `authors.toml`.
 
 If you followed `INSTALL.md`, the starter site is already in both. This guide walks through each piece so you can make it your own.
 
@@ -92,18 +92,18 @@ landing page, its own entity wiki, and its own storefront card.
 
 ### Create the project folder
 
-Inside `src/data/projects/`, create a folder for your project (or rename the starter's `my-project/`). The folder name becomes your
+Inside `src/content/projects/`, create a folder for your project (or rename the starter's `my-project/`). The folder name becomes your
 project's URL slug — use lowercase letters and hyphens, no spaces:
 
 ```
-src/data/projects/my-project-name/
+src/content/projects/my-project-name/
 ```
 
 Choose a slug you won't want to change later. It appears in every URL on your site.
 
 ### Copy and fill in project.toml
 
-Copy `template-files/data/projects/my-project/project.toml` into your new project folder. Open it and fill in the fields.
+Copy `template-files/content/projects/my-project/project.toml` into your new project folder. Open it and fill in the fields.
 
 Required fields:
 - `title` — your project's display title
@@ -125,9 +125,8 @@ These are entirely optional — Keely's defaults are designed to work well out o
 
 ### Your entity folders
 
-Characters, places, and groups don't live in the project folder. They live by type in `src/content/` — `characters/`, `places/`,
-`groups/` — shared by all your projects, and each entity names the project(s) it belongs to in its own `project` field. You'll add
-entities in a later step.
+Characters, places, and groups live in the project folder, in `characters/`, `places/` and `groups/`. All of the project's stories share
+them. You'll add entities in a later step.
 
 ---
 
@@ -137,27 +136,23 @@ A **story** is a single narrative work within your project. It has its own landi
 its own scenes. A project can contain as many stories as you need — one for each book in a series, one for each story in an anthology,
 or just one if you're publishing a single work.
 
-### Create the story folders
+### Create the story folder
 
-A story has two folders with the same name: one in your project's settings for its `story.toml`, and one in `src/content/stories/` for
-its scenes:
+A story is one folder inside your project's `stories/` folder, holding its `story.toml` and its scenes:
 
 ```
-src/data/projects/my-project-name/
+src/content/projects/my-project-name/
   stories/
     my-story-name/
       story.toml
-
-src/content/stories/
-  my-story-name/
-    scenes/
+      scenes/
 ```
 
-The folder name is the story's slug — lowercase and hyphens — and must be the same in both places.
+The folder name is the story's slug — lowercase and hyphens.
 
 ### Copy and fill in story.toml
 
-Copy `template-files/data/projects/my-project/stories/my-story/story.toml` into the story's settings folder. Open it and fill in the fields.
+Copy `template-files/content/projects/my-project/stories/my-story/story.toml` into the story's folder. Open it and fill in the fields.
 
 Required fields:
 - `title` — your story's display title
@@ -171,7 +166,7 @@ warnings apply" is a deliberate statement, not an oversight. Readers rely on thi
 
 ### The scenes folder
 
-Scenes go in `src/content/stories/my-story-name/scenes/`. You'll add your first scene shortly.
+Scenes go in the story's `scenes/` folder. You'll add your first scene shortly.
 
 ### Flat vs. nested story structure
 
@@ -182,7 +177,7 @@ arc are all fine.
 **Flat** — scenes only. Good for short works, novellas, or stories where you don't want visible chapter divisions:
 
 ```
-src/content/stories/
+my-project-name/stories/
   my-story/
     scenes/
       01-the-order/
@@ -193,7 +188,7 @@ src/content/stories/
 **With chapters and arcs:**
 
 ```
-src/content/stories/
+my-project-name/stories/
   my-story/
     scenes/
       00_chapter-01-prologue/
@@ -216,8 +211,8 @@ src/content/stories/
   folders sort into reading order in Finder or Obsidian, and readers never see it.
 - Two arcs or chapters in a row with no scene between them get a letter to keep them in order: `04_…`, `04a_…`.
 
-You don't have to get these numbers right by hand. After adding or rearranging folders, run `npm run renumber -- my-story` to see what
-would change, then `npm run renumber -- my-story --apply` to put every number in order (see `docs/04_writing-scenes.md`).
+You don't have to get these numbers right by hand. After adding or rearranging folders, run `npm run renumber -- my-project-name/my-story` to see
+what would change, then `npm run renumber -- my-project-name/my-story --apply` to put every number in order (see `docs/04_writing-scenes.md`).
 
 Container folders (arcs and chapters) don't contain an `index.md` — that file is what identifies a folder as a scene. To give an arc or
 chapter a title different from its folder name, add a `_meta.toml` file inside it with `title = "Your Title"`.
@@ -235,10 +230,10 @@ The folder name is the entity's slug and becomes its URL.
 
 ### Create an entity folder
 
-Inside the appropriate type folder in `src/content/`, create a named folder and add your `index.md` inside it:
+Inside the appropriate type folder in your project, create a named folder and add your `index.md` inside it:
 
 ```
-src/content/characters/
+src/content/projects/my-project-name/characters/
   angie-mcdonnell/
     index.md
     angie-portrait.jpg    ← images live here too
@@ -251,7 +246,6 @@ Copy the relevant template from `template-files/` into your entity folder, name 
 Required fields for all entities:
 - `name` — the entity's canonical display name
 - `type` — always `character`, `place`, or `group` (do not change)
-- `project` — a list containing your project's slug (its folder name under `src/data/projects/`)
 
 Everything else is optional. Start with just a name and type if you want — you can fill in the rest as your story develops.
 

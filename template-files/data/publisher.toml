@@ -22,8 +22,8 @@ name = "My Name"
 tagline = ""
 
 # A logo shown in the site header instead of your name. Put the image
-# file in the generator's public/images/ folder and give its filename
-# here, e.g. "logo.png". Leave empty to show your name as text.
+# in src/data/ and give its path from there, e.g. "images/logo.png".
+# Leave empty to show your name as text.
 logo = ""
 
 

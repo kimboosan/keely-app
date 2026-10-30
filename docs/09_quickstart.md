@@ -23,28 +23,26 @@ A working Keely site needs at minimum:
 
 ```
 src/
-  content/                    ← your writing, organized by type
-    characters/               ← one folder per character (optional)
-    places/
-    groups/
-    stories/
-      my-story/
-        scenes/
-          01-my-scene/
-            index.md          ← a scene (type, status, narrative_mode required)
-  data/                       ← your settings
-    publisher.toml            ← your identity (name required)
-    authors.toml              ← your author bio
-    genres.json, ratings.json, warnings-vocabulary.json  ← vocabularies; leave as they are
+  content/
     projects/
-      my-project/
+      my-project/             ← everything for one project
         project.toml          ← project metadata (title, genre, rating required)
+        characters/           ← one folder per character (optional)
+        places/
+        groups/
         stories/
           my-story/
             story.toml        ← story metadata (title, genre, rating, content_warnings.required)
+            scenes/
+              01-my-scene/
+                index.md      ← a scene (type, status, narrative_mode required)
+  data/                       ← site-wide settings
+    publisher.toml            ← your identity (name required)
+    authors.toml              ← your author bio
+    genres.json, ratings.json, warnings-vocabulary.json  ← vocabularies; leave as they are
 ```
 
-The story folder name (`my-story`) appears twice, once under `content/` for its scenes and once under `data/` for its settings, and must match. `template-files/` contains exactly this set, every field annotated inline.
+`template-files/` contains exactly this set, every field annotated inline.
 
 ---
 
@@ -62,16 +60,16 @@ cp -R template-files/content template-files/data src/
 Open `src/data/publisher.toml` and set your `name`. Open `src/data/authors.toml` and fill in your author entry. Full details: `docs/01_your-first-project.md`
 
 **3. Make the project yours**
-Rename `src/data/projects/my-project/` to your project's slug (lowercase, hyphens), e.g. `my-novel`. In its `project.toml`, set `title`, `genre`, `rating`, `author.name`, and both `license` fields.
+Rename `src/content/projects/my-project/` to your project's slug (lowercase, hyphens), e.g. `my-novel`. In its `project.toml`, set `title`, `genre`, `rating`, `author.name`, and both `license` fields.
 
 **4. Make the story yours**
-Rename the story folder in **both** places to your story's slug: `src/data/projects/<project>/stories/my-story/` and `src/content/stories/my-story/`. In `story.toml`, set `title`, `genre`, `rating`, `completion_status`, and `content_warnings.required`.
+Rename `stories/my-story/` in your project to your story's slug. In `story.toml`, set `title`, `genre`, `rating`, `completion_status`, and `content_warnings.required`.
 
 **5. Add your entities**
-Rename or copy the starter folders in `src/content/characters/`, `places/`, and `groups/`. Each entity is a folder named with its slug, containing an `index.md`. Set `name`, `type`, and `project` (your project's slug) at minimum. Full details: `docs/02_entities.md`
+Rename or copy the starter folders in your project's `characters/`, `places/`, and `groups/`. Each entity is a folder named with its slug, containing an `index.md`. Set `name` and `type` at minimum. Full details: `docs/02_entities.md`
 
 **6. Write your first scene**
-Edit `src/content/stories/<story>/scenes/01-my-first-scene/index.md`, or copy it into a new numbered folder (e.g. `02-the-next-scene/`). Set `type: scene`, `status: drafting`, and `narrative_mode`. Write your prose below the closing `---`. Full details: `docs/04_writing-scenes.md`
+Edit `stories/<story>/scenes/01-my-first-scene/index.md` in your project, or copy it into a new numbered folder (e.g. `02-the-next-scene/`). Set `type: scene`, `status: drafting`, and `narrative_mode`. Write your prose below the closing `---`. Full details: `docs/04_writing-scenes.md`
 
 **7. Run the dev server**
 ```bash

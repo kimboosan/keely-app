@@ -325,7 +325,6 @@ Optional. How far a group's influence reaches.
 |---|---|---|
 | `name` | Yes | |
 | `type` | Yes | Always `character` |
-| `project` | Yes | List of project slugs |
 | `short_name` | No | Defaults to `name` |
 | `aliases` | No | Used for auto-linking |
 | `subtype` | No | Free-form |
@@ -347,7 +346,6 @@ Optional. How far a group's influence reaches.
 |---|---|---|
 | `name` | Yes | |
 | `type` | Yes | Always `place` |
-| `project` | Yes | List of project slugs |
 | `short_name` | No | Defaults to `name` |
 | `aliases` | No | Used for auto-linking |
 | `subtype` | No | Free-form |
@@ -368,7 +366,6 @@ Optional. How far a group's influence reaches.
 |---|---|---|
 | `name` | Yes | |
 | `type` | Yes | Always `group` |
-| `project` | Yes | List of project slugs |
 | `short_name` | No | Defaults to `name` |
 | `full_name` | No | Unabbreviated formal name |
 | `aliases` | No | Used for auto-linking |
@@ -397,8 +394,8 @@ Optional. How far a group's influence reaches.
 | `summary` | No | Plain text only |
 | `content_warnings.additional` | No | Additive; layered onto story warnings |
 | `content_warnings.custom` | No | Free-form |
-| `authors_notes.top` | No | Plain text (markdown and wiki-links not converted) |
-| `authors_notes.bottom` | No | Plain text (markdown and wiki-links not converted) |
+| `author_notes.top` | No | Plain text (markdown and wiki-links not converted) |
+| `author_notes.bottom` | No | Plain text (markdown and wiki-links not converted) |
 | `pov_character` | No | Wiki-link; omit for omniscient/ensemble |
 | `characters_in_scene` | No | List of wiki-links; drives character backlinks |
 | `scene_location` | No | Wiki-link; drives place backlinks |
@@ -465,25 +462,24 @@ display name is "Angela McDonnell".
 
 ```
 src/
-  content/                      ← your writing, organized by type
-    characters/<slug>/index.md  (+ the entity's images)
-    places/<slug>/index.md
-    groups/<slug>/index.md
-    <custom-type>/<slug>/index.md
-    stories/<story>/scenes/     ← scenes, optionally in arc/chapter folders
-  data/                         ← your settings
+  content/
+    projects/<project>/         ← everything one project owns
+      project.toml              (+ project cover and banner images)
+      characters/<slug>/index.md  (+ the entity's images)
+      places/<slug>/index.md
+      groups/<slug>/index.md
+      <custom-type>/<slug>/index.md
+      stories/<story>/
+        story.toml              (+ story cover and banner images)
+        scenes/                 ← scenes, optionally in arc/chapter folders
+  data/                         ← site-wide settings
     publisher.toml
     authors.toml                (+ author portraits)
     genres.json, ratings.json, warnings-vocabulary.json
-    projects/<project>/
-      project.toml              (+ project cover and banner images)
-      stories/<story>/
-        story.toml              (+ story cover and banner images)
 ```
 
-- An entity joins a project through its `project` field, not its folder.
-- A story's folder name must match under `content/stories/` and
-  `data/projects/<project>/stories/`.
+- Where a file sits says what it belongs to. Slugs need only be unique
+  within their project (entities, stories) or story (scenes).
 - Back up `src/content/` and `src/data/` — together they are all of your
   work. Everything else is the generator, or files it computes.
 - **Advanced:** to keep your content outside the generator's folder, set
@@ -516,8 +512,8 @@ through the whole story; they don't restart in each chapter or arc.
 To insert or move a scene, give its folder a temporary prefix that sorts
 where you want it, then renumber the story:
 ```
-npm run renumber -- my-story            # dry run
-npm run renumber -- my-story --apply    # renames folders, updates [[links]] in that story
+npm run renumber -- my-project/my-story            # dry run
+npm run renumber -- my-project/my-story --apply    # renames folders, updates [[links]] in that story
 ```
 Renumbering puts every scene, chapter and arc number (and position
 marker) in order, widens numbers to three digits if the story passes 99
@@ -556,7 +552,7 @@ identifies a folder as a scene.
 **Older names.** Stories made before v0.7 name arcs and chapters without
 a marker (`arc-01-setup`, `chapter-02-breakdown`). They still work, but
 can only have loose scenes first, then arcs, then chapters. Run
-`npm run renumber -- my-story --apply` once to update them (scene folders
+`npm run renumber -- my-project/my-story --apply` once to update them (scene folders
 aren't touched).
 
 ### Container titles

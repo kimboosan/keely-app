@@ -16,7 +16,7 @@ co-location. A scene's inline images live in the same folder as its prose, keepi
 place.
 
 ```
-src/content/stories/my-story/scenes/
+src/content/projects/my-project/stories/my-story/scenes/
   01-the-order/
     index.md
     evacuation-notice.png  ← inline image, lives here
@@ -70,8 +70,8 @@ To insert a scene between existing scenes (or move one), give the folder a tempo
 Keely renumber the story:
 
 ```bash
-npm run renumber -- my-story            # dry run: shows what would change
-npm run renumber -- my-story --apply    # renames the folders
+npm run renumber -- my-project/my-story            # dry run: shows what would change
+npm run renumber -- my-project/my-story --apply    # renames the folders
 ```
 
 Renumbering also updates every `[[wiki-link]]` to a renamed scene **within that story** — scene folder names are only unique within a
@@ -81,7 +81,7 @@ dry run.
 
 ### Copy the template
 
-Copy `template-files/content/stories/my-story/scenes/01-my-first-scene/index.md` into your new scene folder. Open it and fill in the frontmatter fields.
+Copy `template-files/content/projects/my-project/stories/my-story/scenes/01-my-first-scene/index.md` into your new scene folder. Open it and fill in the frontmatter fields.
 
 ---
 
@@ -103,8 +103,8 @@ your scene prose.
 | `word_count` | Req. if published | Integer | Scene word count. Enter manually in Phase 1 — the Phase 2 editor app fills this in automatically. |
 | `summary` | No | String | A one or two sentence summary shown at the top of the scene page, before the prose. Plain text only — no markdown or wiki-links. |
 | `content_warnings` | No | Block | Scene-level content warnings. Additive — these layer on top of story-level warnings, never replace them. See Content Warnings at Scene Level below. |
-| `authors_notes.top` | No | String | Author's note shown above the scene prose. Plain text — markdown and wiki-links aren't converted. |
-| `authors_notes.bottom` | No | String | Author's note shown below the scene prose. Plain text — markdown and wiki-links aren't converted. |
+| `author_notes.top` | No | String | Author's note shown above the scene prose. Plain text — markdown and wiki-links aren't converted. |
+| `author_notes.bottom` | No | String | Author's note shown below the scene prose. Plain text — markdown and wiki-links aren't converted. |
 | `pov_character` | No | Wiki-link | The character whose perspective drives this scene (`[[character-slug]]`). Omit for omniscient or ensemble scenes. Only scenes with this field set are visible to readers following a POV-filtered through-line. |
 | `characters_in_scene` | No | List | All characters who appear in this scene, each as a wiki-link. Include the POV character if set. This is how the generator builds "appears in" lists on character pages. |
 | `scene_location` | No | Wiki-link | The primary location of this scene (`[[place-slug]]`). This is how the generator builds "scenes at this location" lists on place pages. |
@@ -192,8 +192,28 @@ To show different text while linking to the same entity:
 ```
 
 Use the entity's folder name as the slug, not its display name.
-If you're unsure of a slug, check the entity's folder name in
-`src/content/`.
+If you're unsure of a slug, check the entity's folder name in your
+project's folder.
+
+### Links to another project
+
+A plain `[[slug]]` only finds entities in the same project. To link to an entity in another project, name the project first:
+
+```markdown
+It was the same mark [[dragons-grail/traz|Traz]] had carried.
+```
+
+The entity opens in the wiki pane, with a small note saying which project it's from.
+
+### Links to the web
+
+Standard markdown links work for anything on the web:
+
+```markdown
+She'd read [the original report](https://example.com/report) twice.
+```
+
+They open in a new tab, with a small ↗ after the text, so readers know they're leaving and keep their place.
 
 ### Links to other scenes
 
@@ -226,13 +246,13 @@ Place the image file in the scene's folder alongside `index.md`. Reference it by
 Author's notes are optional messages to readers, separate from the scene prose itself. They're plain text: shown exactly as written, so
 markdown formatting and `[[wiki-links]]` aren't converted in them.
 
-`authors_notes.top` appears above the scene prose, after any content warning banner. Good for: update notes, context about the scene,
+`author_notes.top` appears above the scene prose, after any content warning banner. Good for: update notes, context about the scene,
 or a note to returning readers.
 
-`authors_notes.bottom` appears below the scene prose, before prev/next navigation. Good for: closing commentary, behind-the-scenes
+`author_notes.bottom` appears below the scene prose, before prev/next navigation. Good for: closing commentary, behind-the-scenes
 notes, or acknowledgments.
 
-If both are omitted or left empty, neither appears. Readers can toggle author's notes display on or off — the default is set in `project.toml` or `story.toml` under `reader_defaults.show_author_notes`.
+If both are omitted or left empty, neither appears. Files that use the older spelling, `authors_notes`, still work, with a note in the build. Readers can toggle author's notes display on or off — the default is set in `project.toml` or `story.toml` under `reader_defaults.show_author_notes`.
 
 ---
 

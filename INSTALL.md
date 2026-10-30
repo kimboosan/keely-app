@@ -202,24 +202,23 @@ Here's a quick map of the folder so nothing feels mysterious.
 ```
 my-site/
   src/
-    content/       ← your writing: entities and scenes
-      characters/
-        my-character/index.md
-      places/
-      groups/
-      stories/
-        my-story/
-          scenes/
-            01-my-first-scene/index.md
-    data/          ← your settings: publisher, authors, projects, stories
+    content/       ← your writing
+      projects/
+        my-project/      ← everything for one project
+          project.toml
+          characters/
+            my-character/index.md
+          places/
+          groups/
+          stories/
+            my-story/
+              story.toml
+              scenes/
+                01-my-first-scene/index.md
+    data/          ← site-wide settings: publisher, authors, vocabularies
       publisher.toml
       authors.toml
       genres.json, ratings.json, warnings-vocabulary.json
-      projects/
-        my-project/
-          project.toml
-          stories/
-            my-story/story.toml
     pages/         ← the generator templates (you won't need to touch these)
     scripts/       ← build scripts (you won't need to touch these)
   public/          ← styles and scripts for the reader site
@@ -232,12 +231,10 @@ my-site/
 and those two folders are what to back up. Everything else is the
 generator — you don't need to touch it to publish your story.
 
-Entities and scenes are organized by type, not by project: all
-characters live in `src/content/characters/`, whichever project they
-belong to. Each one says which project it belongs to in its `project`
-field. A story's settings (`story.toml`, under `src/data/projects/`)
-and its scenes (under `src/content/stories/`) live in two folders with
-the same name.
+Everything a project owns is in its own folder under
+`src/content/projects/`: its settings, its characters, places and
+groups, and its stories and their scenes. Where a file sits says what
+it belongs to.
 
 The `.json` files in `src/data/` are the controlled vocabularies the
 generator checks your files against (genres, ratings, content

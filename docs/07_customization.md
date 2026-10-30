@@ -72,7 +72,7 @@ When Keely updates, `reader.css` may be updated too. If you've edited the file d
 
 These fields are set in `publisher.toml` and `authors.toml` — they're covered fully in `docs/01_your-first-project.md`, but here's a quick summary of the branding-relevant ones:
 
-- `logo` in `publisher.toml` — your press logo, displayed in the site header. If omitted, your `name` displays as text.
+- `logo` in `publisher.toml` — your press logo, displayed in the site header, as a path from `src/data/`. If omitted, your `name` displays as text.
 - `tagline` in `publisher.toml` — a one-liner beneath your name on the storefront.
 - `storefront_blurb` in `publisher.toml` — a welcome message for readers on your home page.
 - `projects_label` and `about_label` in `publisher.toml` — the nav link labels on your storefront.
@@ -102,7 +102,7 @@ You only need to include the fields you want to change — omit any field to kee
 
 To add a new entity type:
 
-1. Create a matching folder in your project: `projects/my-project/my-type/`
+1. Create a matching folder in your project: `src/content/projects/my-project/my-type/`
 2. Add an `[[entity_types]]` entry in `project.toml`:
 
 ```toml

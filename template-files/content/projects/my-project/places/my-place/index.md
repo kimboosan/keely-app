@@ -1,10 +1,10 @@
 ---
 # index.md — Place file
 # =====================
-# Lives at: src/content/places/my-place/index.md
+# Lives at: src/content/projects/my-project/places/my-place/index.md
 # The folder name is the place's slug and becomes their URL.
 #
-# Required fields: name, type, project.
+# Required fields: name, type.
 # Everything else is optional — omit any field you don't need and
 # it will not appear on the page.
 # -----------------------------------------------------------------------
@@ -112,15 +112,6 @@ gallery: []
 # If omitted, no tags appear.
 tags: []
 
-
-# -----------------------------------------------------------------------
-# PROJECT MEMBERSHIP
-# -----------------------------------------------------------------------
-# Which project(s) this place belongs to.
-# Use the project folder name (slug), not the display title.
-# Required for the generator to index this place correctly.
-project:
-  - "my-project"
 
 ---
 

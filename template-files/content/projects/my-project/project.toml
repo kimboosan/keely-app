@@ -1,8 +1,8 @@
 # project.toml
 # ============
-# Lives at: src/data/projects/my-project/project.toml
-# The project folder name (my-project) is the project's slug: entities
-# join the project by setting `project: my-project`.
+# Lives at: src/content/projects/my-project/project.toml
+# The project folder name (my-project) is the project's slug. Everything
+# in this folder belongs to the project: its entities and its stories.
 # This file declares the metadata for your entire creative project — the
 # "world" that contains all your stories, characters, places, and groups.
 #
@@ -40,7 +40,7 @@ created = 2026-01-01
 # IMAGES
 # -----------------------------------------------------------------------
 # Put image files in this project's folder, beside this project.toml
-# (src/data/projects/my-project/), and give their filenames here.
+# (src/content/projects/my-project/), and give their filenames here.
 #
 # cover  — portrait orientation (recommended: 400×600px). Used in grid
 #           listings and storefronts. Think book cover.
@@ -179,13 +179,9 @@ content = "All Rights Reserved"
 # display labels or colors.
 #
 # To add a custom entity type (e.g. "artifacts", "magic-systems"):
-#   1. Create a matching folder: src/content/artifacts/
+#   1. Create a matching folder in this project: artifacts/
 #   2. Add an [[entity_types]] entry below with name = "artifacts"
 #   3. Add your entity folders inside it, each with an index.md
-#      whose `project` field names this project
-#
-# Note: custom entity types don't get their own reader pages yet, so
-# wiki-links to them won't lead anywhere on your published site.
 #
 # Color accepts a CSS color name or hex value (e.g. "teal", "#4a90d9").
 # If omitted, the default color for that entity type is used.

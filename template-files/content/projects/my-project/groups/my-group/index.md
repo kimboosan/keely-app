@@ -1,10 +1,10 @@
 ---
 # index.md — Group file
 # =====================
-# Lives at: src/content/groups/my-group/index.md
+# Lives at: src/content/projects/my-project/groups/my-group/index.md
 # The folder name is the group's slug and becomes their URL.
 #
-# Required fields: name, type, project.
+# Required fields: name, type.
 # Everything else is optional — omit any field you don't need and
 # it will not appear on the page.
 # -----------------------------------------------------------------------
@@ -109,15 +109,6 @@ gallery: []
 # If omitted, no tags appear.
 tags: []
 
-
-# -----------------------------------------------------------------------
-# PROJECT MEMBERSHIP
-# -----------------------------------------------------------------------
-# Which project(s) this group belongs to.
-# Use the project folder name (slug), not the display title.
-# Required for the generator to index this group correctly.
-project:
-  - "my-project"
 
 ---
 

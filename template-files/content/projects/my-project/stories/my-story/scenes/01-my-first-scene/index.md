@@ -1,10 +1,10 @@
 ---
 # index.md — Scene file
 # =====================
-# Lives at: src/content/stories/my-story/scenes/01-my-first-scene/index.md
+# Lives at: src/content/projects/my-project/stories/my-story/scenes/01-my-first-scene/index.md
 # (or inside arc/chapter folders under scenes/ — see docs/REFERENCE.md).
 # The story folder name (my-story) must match the story's folder under
-# src/data/projects/my-project/stories/.
+# src/content/projects/my-project/stories/.
 # The folder name is the scene's slug and becomes part of its URL.
 #
 # IMPORTANT: The numeric prefix on the folder name (e.g. 01-my-first-scene)
@@ -81,7 +81,7 @@ content_warnings:
 # top    — appears above the scene prose, after any warning banner.
 # bottom — appears after the scene prose, before prev/next navigation.
 # If omitted or left empty, neither appears.
-authors_notes:
+author_notes:
   top: ""
   bottom: ""
 

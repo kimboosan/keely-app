@@ -12,11 +12,11 @@ Each entity lives in its own named folder containing a single `index.md` file. T
 makes co-location possible. An entity's images (portrait, gallery) live in the same folder as its `index.md`, keeping everything that
 belongs to a character together in one place. The folder name is the entity's slug, which becomes its URL.
 
-Entities are organized by type in `src/content/`, not by project. All your characters share `src/content/characters/`, whichever
-project they belong to; each entity's `project` field says which project(s) it's part of.
+Entities live in their project's folder, by type. An entity belongs to the project whose folder it's in, and all of that project's
+stories share it.
 
 ```
-src/content/
+src/content/projects/my-project/
   characters/
     angie-mcdonnell/
       index.md
@@ -47,7 +47,7 @@ See `docs/REFERENCE.md` for the full computed fields reference.
 
 ### Template files
 
-Every entity type has a fully annotated template file in `template-files/content/` (e.g. `template-files/content/characters/my-character/index.md`).
+Every entity type has a fully annotated template file in `template-files/content/projects/my-project/` (e.g. `characters/my-character/index.md`).
 Copy the relevant template into your entity folder and fill in the fields. Every field is explained inline in the template.
 
 ---
@@ -64,7 +64,6 @@ membership, relationships to other characters, POV scenes, and appearance lists.
 |---|---|---|---|
 | `name` | Yes | String | The character's full canonical name. Appears as the page title and in wiki listings. |
 | `type` | Yes | String | Always `character`. Do not change. |
-| `project` | Yes | List | The project slug(s) this character belongs to. Required for the generator to index them correctly. |
 | `short_name` | No | String | The name used in wiki references and the sidebar. Defaults to `name` if omitted. Use this for nicknames or shortened forms — "Angie" instead of "Angela McDonnell". |
 | `aliases` | No | List | Other names this character is known by. Used for auto-linking — if a scene mentions "Exec", the generator can auto-link it to this character's page. |
 | `subtype` | No | String | Free-form category for your own use. Examples: crew, antagonist, love-interest, minor, suspect. Appears in listings but is not a controlled vocabulary — use whatever makes sense for your story. |
@@ -109,7 +108,6 @@ station inside a crater, for example).
 |---|---|---|---|
 | `name` | Yes | String | The place's full canonical name. |
 | `type` | Yes | String | Always `place`. Do not change. |
-| `project` | Yes | List | The project slug(s) this place belongs to. |
 | `short_name` | No | String | Short display name for wiki references. Defaults to `name`. Example: "Moon Base Delta" → "The Station". |
 | `aliases` | No | List | Other names this place is known by, used for auto-linking. |
 | `subtype` | No | String | Free-form category. Examples: facility, city, planet, region, vehicle, building. |
@@ -162,7 +160,6 @@ automatically so you only declare each relationship once.
 |---|---|---|---|
 | `name` | Yes | String | The group's canonical name. |
 | `type` | Yes | String | Always `group`. Do not change. |
-| `project` | Yes | List | The project slug(s) this group belongs to. |
 | `short_name` | No | String | Short display name for wiki references. Defaults to `name`. |
 | `full_name` | No | String | The group's full unabbreviated name, if `name` is an abbreviation or informal shorthand. Example: `name` is "Mizmo", `full_name` is "Mizmo Lunar Operations Corporation". |
 | `aliases` | No | List | Other names this group is known by, used for auto-linking. |
@@ -228,14 +225,13 @@ in the file. The heading must be exactly "Spoilers" (capitalization doesn't matt
 Beyond characters, places, and groups, you can declare your own entity types — artifacts, ships, magic systems, whatever your world
 needs:
 
-1. Create a folder for the type in `src/content/`, e.g. `src/content/artifacts/`.
+1. Create a folder for the type in your project, e.g. `src/content/projects/my-project/artifacts/`.
 2. Declare it in your `project.toml` with an `[[entity_types]]` entry (`name = "artifacts"`, plus singular/plural labels and an
    optional color). The project template explains every option.
-3. Add entities inside it the same way as any other type: one folder per entity, each with an `index.md` whose `project` field names
-   your project.
+3. Add entities inside it the same way as any other type: one folder per entity, each with an `index.md`.
 
-**Current limitation:** custom entity types are indexed and can be wiki-linked, but they don't get their own reader pages yet, so a
-link to one won't lead anywhere on your published site. Reader pages for custom types are planned.
+Custom types get reader pages like the built-in types: an index at `/my-project/artifacts/` and a page for each entity, showing the
+fields you declared.
 
 ---
 
