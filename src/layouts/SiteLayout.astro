@@ -1,4 +1,5 @@
 ---
+import { BASE, url } from '../utils/url.js';
 import { getPublisherConfig } from '../utils/config.js';
 import PreviewMode from '../components/PreviewMode.astro';
 import { getImage } from 'astro:assets';
@@ -10,43 +11,46 @@ const logo = publisherLogo(publisher.logo, dataImages);
 // The header shows the logo 40px tall (reader.css); the copy made here is
 // twice that, so it stays sharp on high-resolution screens. The author's
 // original file is left as it is.
-const logoUrl = logo?.image ? (await getImage({ src: logo.image, height: 80 })).src : (logo?.url ?? null);
+const logoUrl = logo?.image ? (await getImage({ src: logo.image, height: 80 })).src : (logo?.url ? url(logo.url) : null);
 
+// `crumbs`: the page's breadcrumb trail (D-177), from utils/crumbs.js.
 const {
   title,
-  backLink = null,
-  backLabel = null,
+  crumbs = [],
   showNavToggle = false,
   showWikiToggle = false,
   sidebarCollapsed = false,
 } = Astro.props;
 ---
 
-<html data-sidebar-collapsed={sidebarCollapsed}>
+<html data-sidebar-collapsed={sidebarCollapsed} data-base={BASE || undefined}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{title}</title>
-    <link rel="stylesheet" href="/styles/reader.css" />
-    <script is:inline src="/scripts/reader-prefs.js"></script>
+    {/* D-173: the author asked search engines not to list the site. */}
+    {publisher.hide_from_search_engines === true && <meta name="robots" content="noindex" />}
+    <link rel="stylesheet" href={url('/styles/reader.css')} />
+    <script is:inline src={url('/scripts/reader-prefs.js')}></script>
     {import.meta.env.DEV && <PreviewMode />}
   </head>
   <body class="site-layout">
     <header id="site-header">
-      <div id="header-left">
-        {backLink && backLabel
-          ? <a href={backLink}>← {backLabel}</a>
-          : <span></span>
-        }
-      </div>
+      <nav id="header-left" aria-label="Breadcrumb">
+        {crumbs.length > 0 && (
+          <ol class="crumbs">
+            {crumbs.map((c) => <li><a href={url(c.href)} title={c.label}>{c.label}</a></li>)}
+          </ol>
+        )}
+      </nav>
       <div id="header-center">
         {showNavToggle && <button id="nav-toggle">Navigation</button>}
         {showWikiToggle && <button id="wiki-header-btn">Wiki</button>}
       </div>
       <div id="header-right">
         {logoUrl
-          ? <a href="/"><img src={logoUrl} alt={publisher.name} id="header-logo" /></a>
-          : <a href="/" id="header-logo">{publisher.name}</a>
+          ? <a href={url('/')}><img src={logoUrl} alt={publisher.name} id="header-logo" /></a>
+          : <a href={url('/')} id="header-logo">{publisher.name}</a>
         }
         <button id="reader-prefs-btn" aria-label="Reader preferences" title="Reader preferences">⚙</button>
       </div>

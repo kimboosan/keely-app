@@ -1,0 +1,22 @@
+---
+import { url } from '../utils/url.js';
+import { slugify } from '../utils/config.js';
+// A project's, story's or scene's tags (D-175), each linking to its tag
+// page — the same markup entity pages use. `inline` is the scene page's
+// one-line form, alongside its other details.
+const { project, tags = [], inline = false } = Astro.props;
+const href = (tag) => url(`/${project}/tags/${slugify(tag)}`);
+---
+
+{tags.length > 0 && (inline ? (
+  <p class="scene-tags"><strong>Tags:</strong>{" "}{tags.map((tag, i) => <><a href={href(tag)}>{tag}</a>{i < tags.length - 1 ? ', ' : ''}</>)}</p>
+) : (
+  <div class="entity-tags">
+    <h2>Tags</h2>
+    <ul>
+      {tags.map((tag) => (
+        <li class="tag"><a href={href(tag)}>{tag}</a></li>
+      ))}
+    </ul>
+  </div>
+))}

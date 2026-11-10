@@ -32,7 +32,8 @@ export function getAuthors() {
   return parsed.authors ?? [];
 }
 
-const VALID_RATINGS = ['Not Rated', 'General Audiences', 'Teen and Up', 'Mature', 'Explicit'];
+// Lowest to highest, so ratings can be compared (D-170).
+export const VALID_RATINGS = ['Not Rated', 'General Audiences', 'Teen and Up', 'Mature', 'Explicit'];
 
 const { genres: VALID_GENRES } = JSON.parse(readFileSync(`${DATA}/genres.json`, 'utf-8'));
 
@@ -115,5 +116,7 @@ export function getStoryConfig(projectSlug, storySlug) {
       ...projectConfig.reader_defaults,
       ...storyConfig.reader_defaults,
     },
+    // A story's tags are its own: the project's stay on the project (D-175).
+    tags: storyConfig.tags ?? [],
   };
 }

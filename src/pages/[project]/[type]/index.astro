@@ -1,4 +1,6 @@
 ---
+import { wikiCrumbs } from '../../../utils/crumbs.js';
+import { url } from '../../../utils/url.js';
 // The index of one custom entity type in a project (D-086) — the
 // counterpart of the built-in types' index pages, for every custom type the
 // project declares.
@@ -29,15 +31,14 @@ const entries = entriesIn(await entriesOf(type), project)
 
 <SiteLayout
   title={`${plural} — ${projectConfig.title}`}
-  backLink={`/${project}/wiki`}
-  backLabel="Wiki"
+  crumbs={wikiCrumbs(project)}
 >
   <div class="entity-index">
     <h1>{plural}</h1>
     {entries.length === 0 && <p>None yet.</p>}
     <div class="entity-grid">
       {entries.map((entry) => (
-        <a class="entity-card" href={`/${project}/${type}/${entrySlug(entry)}`}>
+        <a class="entity-card" href={url(`/${project}/${type}/${entrySlug(entry)}`)}>
           <div class="entity-card-name">{entry.data.name}</div>
           {entry.data.subtype && <div class="entity-card-sub">{entry.data.subtype}</div>}
         </a>

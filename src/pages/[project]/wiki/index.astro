@@ -1,8 +1,11 @@
 ---
+import { projectCrumbs } from '../../../utils/crumbs.js';
+import { url } from '../../../utils/url.js';
 import { entrySlug } from '../../../utils/entries.mjs';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { getProjectConfig } from '../../../utils/config.js';
 import { projectEntityTypes } from '../../../utils/projectEntities.js';
+import { projectTags } from '../../../utils/projectTags.js';
 
 export async function getStaticPaths() {
   const { getProjects } = await import('../../../utils/config.js');
@@ -13,14 +16,14 @@ export async function getStaticPaths() {
 const { project } = Astro.params;
 const projectConfig = await getProjectConfig(project);
 
-// Built-in types, then the project's custom types (D-086).
+// Built-in types, then the project's custom types (D-086), then tags.
 const entityTypes = await projectEntityTypes(project);
+const tags = await projectTags(project);
 ---
 
 <SiteLayout
   title={`Wiki — ${projectConfig.title}`}
-  backLink={`/projects/${project}`}
-  backLabel={projectConfig.title}
+  crumbs={projectCrumbs(project)}
 >
   <div class="wiki-index">
     <h1>Wiki</h1>
@@ -28,12 +31,12 @@ const entityTypes = await projectEntityTypes(project);
     {entityTypes.map(t => (
       <section class="wiki-index-section">
         <h2>
-          <a href={`/${project}/${t.name}`}>{t.plural}</a>
+          <a href={url(`/${project}/${t.name}`)}>{t.plural}</a>
         </h2>
         <ul class="wiki-index-list">
           {t.entries.map(entry => (
             <li>
-              <a href={`/${project}/${t.name}/${entrySlug(entry)}`}>
+              <a href={url(`/${project}/${t.name}/${entrySlug(entry)}`)}>
                 {entry.data.name}
               </a>
             </li>
@@ -41,5 +44,20 @@ const entityTypes = await projectEntityTypes(project);
         </ul>
       </section>
     ))}
+
+    {tags.length > 0 && (
+      <section class="wiki-index-section">
+        <h2>
+          <a href={url(`/${project}/tags`)}>Tags</a>
+        </h2>
+        <ul class="wiki-index-list">
+          {tags.map(([slug, label]) => (
+            <li>
+              <a href={url(`/${project}/tags/${slug}`)}>{label}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
   </div>
 </SiteLayout>

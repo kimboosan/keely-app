@@ -19,6 +19,14 @@ public/scenes/
 # git should ignore; it's plain copies of files already in the vault.
 Keely History/
 
+# The finished site the app makes (D-168), and its half-made copies. Built
+# from the vault, so a vault's own git doesn't need it either.
+Keely Site/
+.keely-site-new/
+.keely-site-old/
+# Where the app has Astro build a site before copying it out (D-178).
+.keely-build/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

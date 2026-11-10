@@ -1,10 +1,14 @@
 ---
+import { projectCrumbs } from '../../../../utils/crumbs.js';
+import { url } from '../../../../utils/url.js';
 import { findImage } from '../../../../utils/findImage.js';
-import { getCollection } from 'astro:content';
+import { storyReading } from '../../../../utils/storyReading.js';
 import { Image } from 'astro:assets';
 import { getStoryConfig, getProjectConfig, getProjects, getStoriesForProject, formatDate } from '../../../../utils/config.js';
 import ContentWarnings from '../../../../components/ContentWarnings.astro';
-import SiteLayout from '../../../../layouts/SiteLayout.astro';
+import TagList from '../../../../components/TagList.astro';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import NavPanel from '../../../../components/NavPanel.astro';
 
 export async function getStaticPaths() {
   const projects = getProjects();
@@ -22,18 +26,17 @@ export async function getStaticPaths() {
 
 const { project, story: storySlug } = Astro.params;
 const story = getStoryConfig(project, storySlug);
-console.log('story.genre:', story.genre);
-console.log('story.rating:', story.rating);
 const statusClass = `meta-status--${story.completion_status ?? 'unknown'}`;
 const projectConfig = getProjectConfig(project);
 
-const scenes = await getCollection('scenes');
-
-const sorted = scenes
-  .filter(s => s.id.startsWith(`${project}/${storySlug}/scenes/`))
-  .sort((a, b) => a.id.localeCompare(b.id));
-
-const firstScene = sorted[0] ?? null;
+// The story in reading order (D-170): Start Reading goes to its first page,
+// an arc's or chapter's when it opens with one, and the side panel shows
+// the navigation.
+const { hierarchy, sequence } = await storyReading(project, storySlug);
+const first = sequence[0] ?? null;
+const startHref = first
+  ? first.type === 'scene' ? url(`/${project}/stories/${storySlug}/scenes/${first.slug}`) : first.href
+  : null;
 
 const allImages = import.meta.glob('@vault/content/projects/*/stories/*/*.{jpg,png,webp,gif,svg}', { eager: true });
 const storyBanner = story.banner
@@ -51,11 +54,14 @@ const formatDate = (raw) => {
 };
 ---
 
-<SiteLayout
+<BaseLayout
   title={story.title}
-  backLink={`/projects/${project}`}
-  backLabel={projectConfig.title}
+  projectSlug={project}
+  storySlug={storySlug}
+  crumbs={projectCrumbs(project)}
+  sidebarCollapsed={story.reader_defaults?.sidebar_collapsed ?? false}
 >
+  <Fragment slot="prose">
   <div class="story-landing">
 
     {storyBanner && (
@@ -110,13 +116,17 @@ const formatDate = (raw) => {
       </div>
     )}
 
+    <TagList project={project} tags={story.tags} />
+
     {story.author_notes?.top && (
       <div class="story-author-note">
         <strong>Author Note:</strong> {story.author_notes.top}
       </div>
     )}
 
-    <a href={`/${project}/stories/${storySlug}/scenes/${firstScene.id.split('/').pop()}`} class="story-start">Start Reading →</a>
+    {startHref && (
+      <a href={startHref} class="story-start">Start Reading →</a>
+    )}
 
     <ContentWarnings storyWarnings={story.content_warnings} />
 
@@ -161,4 +171,15 @@ const formatDate = (raw) => {
     )}
 
   </div>
-</SiteLayout>
+  </Fragment>
+
+  <Fragment slot="wiki">
+    <NavPanel hierarchy={hierarchy} storySlug={storySlug} projectSlug={project} open />
+    <div id="scene-info" style="display:none;"></div>
+    <div id="entity-content" style="display:none;"></div>
+    <div id="wiki-nav-controls" style="display:flex; justify-content:space-between; padding:1rem 0; border-top:1px solid #ccc; margin-top:1rem;">
+      <button id="back-btn" disabled>&larr; Back</button>
+      <button id="forward-btn" disabled>Forward &rarr;</button>
+    </div>
+  </Fragment>
+</BaseLayout>

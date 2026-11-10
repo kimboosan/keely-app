@@ -1,4 +1,6 @@
 ---
+import { wikiCrumbs } from '../../../utils/crumbs.js';
+import { url } from '../../../utils/url.js';
 import { findImage } from '../../../utils/findImage.js';
 import { getCollection } from 'astro:content';
 import { renderEntityMarkdown } from '../../../utils/markdown.mjs';
@@ -8,6 +10,8 @@ import { Image } from 'astro:assets';
 import { getProjects, getProjectConfig } from '../../../utils/config.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { slugify } from '../../../utils/config.js';
+import SceneList from '../../../components/SceneList.astro';
+import FeaturedList from '../../../components/FeaturedList.astro';
 
 export async function getStaticPaths() {
   const groups = await getCollection('groups');
@@ -47,8 +51,7 @@ const groupImage = group.data.image
 
 <SiteLayout
   title={`${group.data.name} — ${projectConfig.title}`}
-  backLink={`/${project}/groups`}
-  backLabel="Groups"
+  crumbs={[...wikiCrumbs(project), { href: `/${project}/groups`, label: 'Groups' }]}
 >
   <main class="entity-page">
     <h1>{group.data.name}</h1>
@@ -98,7 +101,7 @@ const groupImage = group.data.image
         <ul>
           {members.map(member => (
             <li>
-              <a href={`/${project}/characters/${member.slug}`}>
+              <a href={url(`/${project}/characters/${member.slug}`)}>
                 {member.name}
               </a>
             </li>
@@ -113,7 +116,7 @@ const groupImage = group.data.image
         <ul>
           {groupRels.opposed_to.map(slug => (
             <li>
-              <a href={`/${project}/groups/${slug}`}>
+              <a href={url(`/${project}/groups/${slug}`)}>
                 {entityIndex[slug]?.name || slug}
               </a>
             </li>
@@ -128,7 +131,7 @@ const groupImage = group.data.image
         <ul>
           {groupRels.allied_with.map(slug => (
             <li>
-              <a href={`/${project}/groups/${slug}`}>
+              <a href={url(`/${project}/groups/${slug}`)}>
                 {entityIndex[slug]?.name || slug}
               </a>
             </li>
@@ -137,20 +140,8 @@ const groupImage = group.data.image
       </div>
     )}
 
-    {mentionedInOnly.length > 0 && (
-      <div class="entity-appearances">
-        <h2>Mentioned In</h2>
-        <ul>
-          {mentionedInOnly.map(scene => (
-            <li>
-              <a href={`/${project}/stories/${scene.storySlug}/scenes/${scene.slug}`}>
-                {scene.title}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
+    <FeaturedList project={project} featured={relationships.featuredIn?.['groups']?.[slug] ?? []} />
+    <SceneList project={project} heading="Mentioned In" scenes={mentionedInOnly} />
 
     {group.data.tags && group.data.tags.length > 0 && (
       <div class="entity-tags">
@@ -158,7 +149,7 @@ const groupImage = group.data.image
         <ul>
           {group.data.tags.map(tag => (
             <li class="tag">
-              <a href={`/${project}/tags/${slugify(tag)}`}>{tag}</a>
+              <a href={url(`/${project}/tags/${slugify(tag)}`)}>{tag}</a>
             </li>
           ))}
         </ul>

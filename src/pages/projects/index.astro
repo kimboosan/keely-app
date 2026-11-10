@@ -1,4 +1,6 @@
 ---
+import { siteCrumbs } from '../../utils/crumbs.js';
+import { url } from '../../utils/url.js';
 import { findImage } from '../../utils/findImage.js';
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import { getPublisherConfig, getProjects } from '../../utils/config.js';
@@ -12,8 +14,7 @@ const allImages = import.meta.glob(['@vault/content/projects/*/*.{jpg,png,webp,g
 
 <SiteLayout
   title={`${publisher.projects_label ?? 'Stories'} — ${publisher.name}`}
-  backLink="/"
-  backLabel={publisher.name}
+  crumbs={siteCrumbs()}
 >
   <div class="projects-index">
     <h1>{publisher.projects_label ?? 'Stories'}</h1>
@@ -23,7 +24,7 @@ const allImages = import.meta.glob(['@vault/content/projects/*/*.{jpg,png,webp,g
           ? findImage(allImages, `content/projects/${project.slug}/${project.cover}`)
           : null;
         return (
-          <a href={`/projects/${project.slug}`} class="project-card">
+          <a href={url(`/projects/${project.slug}`)} class="project-card">
             {coverImage
               ? <Image src={coverImage} alt={project.title} width={400} height={600} class="project-card-cover" />
               : <div class="project-card-cover-placeholder" />

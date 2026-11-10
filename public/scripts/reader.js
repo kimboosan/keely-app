@@ -7,7 +7,9 @@
   const forwardBtn = document.getElementById('forward-btn');
 
   // History stack — each entry is { type: 'scene-info' | 'nav' | 'entity', html?: string }
-  const wikiHistory = [{ type: 'scene-info' }];
+  // The story page and arc and chapter pages arrive with the navigation
+  // showing (D-170); scene pages with their scene info.
+  const wikiHistory = [{ type: navPanel && navPanel.style.display !== 'none' ? 'nav' : 'scene-info' }];
   let cursor = 0;
 
   function renderCurrent() {
@@ -119,6 +121,11 @@ function wireContentWarnings() {
       // Swap prose pane contents
       const prosePane = document.getElementById('prose-pane');
       prosePane.innerHTML = newPane.innerHTML;
+      // The header's breadcrumbs too: the next scene may be in another
+      // chapter (D-177).
+      const newCrumbs = doc.getElementById('header-left');
+      const crumbs = document.getElementById('header-left');
+      if (newCrumbs && crumbs) crumbs.innerHTML = newCrumbs.innerHTML;
       wireEntityLinks();
       wireContentWarnings();
       applyReaderPreferences(); 
@@ -175,7 +182,9 @@ function wireContentWarnings() {
     const link = e.target.closest('a');
     if (!link) return;
     const href = link.getAttribute('href');
-    if (href && href.includes('/scenes/')) {
+    // Only from one scene to another: swapping the prose alone would leave
+    // the story page's or an arc's page's side panel beside a scene.
+    if (href && href.includes('/scenes/') && document.querySelector('#prose-pane .scene-meta')) {
       e.preventDefault();
       navigateToScene(href);
     }
@@ -271,20 +280,32 @@ function getAdjacentScenes(mode) {
 
 function updateNavLinks(mode) {
   const { prev: adjPrev, next: adjNext } = getAdjacentScenes(mode);
-  const project = window.location.pathname.split('/')[1];
-  const storySlug = window.location.pathname.split('/')[3];
+  // The site may live in a subfolder (D-168); SiteLayout puts it on <html>.
+  const base = document.documentElement.dataset.base ?? '';
+  const parts = window.location.pathname.slice(base.length).split('/');
+  const project = parts[1];
+  const storySlug = parts[3];
   const navEl = document.querySelector('#prose-pane nav');
-  if (!navEl) return;
+  if (!navEl || !document.querySelector('#prose-pane .scene-meta')) return;
+
+  // Read straight through, the page's own Previous and Next stand: they pass
+  // through arc and chapter pages (D-170). A reading thread goes scene to
+  // scene, so keep the page's own to put back when the thread is cleared.
+  if (mode === 'linear') {
+    if (navEl.dataset.linear) navEl.innerHTML = navEl.dataset.linear;
+    return;
+  }
+  if (!navEl.dataset.linear) navEl.dataset.linear = navEl.innerHTML;
 
   const prevHtml = adjPrev
-    ? `<a href="/${project}/stories/${storySlug}/scenes/${adjPrev.id}">← ${adjPrev.number}. ${adjPrev.title}</a>`
-    : `<a href="/${project}/stories/${storySlug}">← Story Home</a>`;
+    ? `<a href="${base}/${project}/stories/${storySlug}/scenes/${adjPrev.id}">← ${adjPrev.number}. ${adjPrev.title}</a>`
+    : `<a href="${base}/${project}/stories/${storySlug}">← Story Home</a>`;
 
     const completionStatus = navEl.dataset.completionStatus;
     const endLabel = completionStatus === 'complete' ? 'End →' : 'To be continued...';
 
     const nextHtml = adjNext
-      ? `<a href="/${project}/stories/${storySlug}/scenes/${adjNext.id}">${adjNext.number}. ${adjNext.title} →</a>`
+      ? `<a href="${base}/${project}/stories/${storySlug}/scenes/${adjNext.id}">${adjNext.number}. ${adjNext.title} →</a>`
       : `<span style="color: #999;">${endLabel}</span>`;
 
   navEl.innerHTML = prevHtml + nextHtml;

@@ -1,9 +1,14 @@
 ---
+import { projectsCrumbs } from '../../../utils/crumbs.js';
+import { url } from '../../../utils/url.js';
 import { findImage } from '../../../utils/findImage.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { Image } from 'astro:assets';
 import { getProjectConfig, getPublisherConfig, getProjects, getStoriesForProject, formatDate } from '../../../utils/config.js';
 import StoryWarningsBlock from '../../../components/StoryWarningsBlock.astro';
+import TagList from '../../../components/TagList.astro';
+import { projectEntityTypes } from '../../../utils/projectEntities.js';
+import { projectTags } from '../../../utils/projectTags.js';
 
 export async function getStaticPaths() {
   const projects = getProjects();
@@ -21,6 +26,15 @@ const allImages = import.meta.glob(['@vault/content/projects/*/*.{jpg,png,webp,g
 const coverImage = project.cover
   ? findImage(allImages, `content/projects/${projectSlug}/${project.cover}`)
   : null;
+// The wiki card at the foot of the page: what the wiki holds, by type, then
+// tags. A way in without the side panel, and a sign the page ends here.
+const wikiHolds = [
+  ...(await projectEntityTypes(projectSlug)).map((t) => [t.entries.length, t.singular, t.plural]),
+  [(await projectTags(projectSlug)).length, 'tag', 'tags'],
+]
+  .filter(([n]) => n > 0)
+  .map(([n, one, many]) => `${n} ${(n === 1 ? one : many).toLowerCase()}`);
+
 const bannerImage = project.banner
   ? findImage(allImages, `content/projects/${projectSlug}/${project.banner}`)
   : null;
@@ -28,8 +42,7 @@ const bannerImage = project.banner
 
 <SiteLayout
   title={project.title}
-  backLink="/projects"
-  backLabel="Projects"
+  crumbs={projectsCrumbs()}
 >
   {bannerImage && (
     <div class="project-banner">
@@ -83,6 +96,7 @@ const bannerImage = project.banner
 
       {project.summary && <p class="project-summary">{project.summary}</p>}
     <p class="project-author">By <a href={project.author.url}>{project.author.name}</a></p>
+    <TagList project={projectSlug} tags={project.tags ?? []} />
 
     {project.author_notes?.top && (
       <div class="project-author-note">
@@ -94,7 +108,7 @@ const bannerImage = project.banner
       <h2>Stories</h2>
       {stories.map(story => (
         <p>
-          <a href={`/${projectSlug}/stories/${story.slug}`}>{story.title}</a>
+          <a href={url(`/${projectSlug}/stories/${story.slug}`)}>{story.title}</a>
           {story.tagline && <span class="project-story-tagline"> — {story.tagline}</span>}
         </p>
       ))}
@@ -104,6 +118,13 @@ const bannerImage = project.banner
       <div class="project-author-note project-author-note--bottom">
         {project.author_notes.bottom}
       </div>
+    )}
+
+    {wikiHolds.length > 0 && (
+      <a class="project-wiki-card" href={url(`/${projectSlug}/wiki`)}>
+        <span class="project-wiki-card-title">Explore the wiki &rarr;</span>
+        <span class="project-wiki-card-holds">{wikiHolds.join(' · ')}</span>
+      </a>
     )}
 
   </div>

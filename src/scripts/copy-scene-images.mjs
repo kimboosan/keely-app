@@ -1,9 +1,21 @@
 import { projectSlugs, scenesDir, storySlugs } from '../utils/vault.mjs';
-import { readdirSync, copyFileSync, mkdirSync, existsSync } from 'fs';
+import { readdirSync, readFileSync, copyFileSync, mkdirSync, existsSync, rmSync } from 'fs';
 import { join, extname } from 'path';
+import matter from 'gray-matter';
+import { isPublished } from '../utils/published.mjs';
 
 const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg']);
 const SCENES_DEST = './public/scenes';
+
+// A real build (D-168): `public/` goes out with the site, so it starts clean
+// and an unpublished scene's images stay behind with the scene.
+const publishedOnly = process.argv.includes('--published-only');
+if (publishedOnly) rmSync(SCENES_DEST, { recursive: true, force: true });
+
+function isHeldBack(dir) {
+  const file = join(dir, 'index.md');
+  return publishedOnly && existsSync(file) && !isPublished(matter(readFileSync(file, 'utf-8')).data);
+}
 
 function copySceneImages(srcDir, destDir, relativePath = '') {
   const entries = readdirSync(srcDir, { withFileTypes: true });
@@ -13,7 +25,7 @@ function copySceneImages(srcDir, destDir, relativePath = '') {
     const relPath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
 
     if (entry.isDirectory()) {
-      copySceneImages(srcPath, destDir, relPath);
+      if (!isHeldBack(srcPath)) copySceneImages(srcPath, destDir, relPath);
     } else if (IMAGE_EXTENSIONS.has(extname(entry.name).toLowerCase())) {
       const destPath = join(destDir, relPath);
       const destFolder = join(destDir, relativePath);

@@ -1,6 +1,8 @@
 ---
-import { getProjects, getProjectConfig, slugify } from '../../../utils/config.js';
-import { projectEntityTypes } from '../../../utils/projectEntities.js';
+import { wikiCrumbs } from '../../../utils/crumbs.js';
+import { url } from '../../../utils/url.js';
+import { getProjects, getProjectConfig } from '../../../utils/config.js';
+import { projectTags } from '../../../utils/projectTags.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 
 export async function getStaticPaths() {
@@ -13,28 +15,12 @@ export async function getStaticPaths() {
 
 const { project } = Astro.params;
 const projectConfig = await getProjectConfig(project);
-
-// Every entity type's entries, built-in and custom (D-086).
-const allEntities = (await projectEntityTypes(project)).flatMap(t => t.entries);
-
-// Build a map of tag slug → display label, sorted alphabetically
-const tagMap = new Map();
-for (const entity of allEntities) {
-  for (const tag of entity.data.tags ?? []) {
-    const slug = slugify(tag);
-    if (!tagMap.has(slug)) tagMap.set(slug, tag);
-  }
-}
-
-const sortedTags = [...tagMap.entries()].sort((a, b) =>
-  a[1].localeCompare(b[1])
-);
+const sortedTags = await projectTags(project);
 ---
 
 <SiteLayout
   title={`Tags — ${projectConfig.title}`}
-  backLink={`/${project}/wiki`}
-  backLabel="Wiki"
+  crumbs={wikiCrumbs(project)}
 >
   <main class="tags-index">
     <h1>Tags</h1>
@@ -46,7 +32,7 @@ const sortedTags = [...tagMap.entries()].sort((a, b) =>
     <ul class="tags-list">
       {sortedTags.map(([slug, label]) => (
         <li>
-          <a href={`/${project}/tags/${slug}`}>{label}</a>
+          <a href={url(`/${project}/tags/${slug}`)}>{label}</a>
         </li>
       ))}
     </ul>

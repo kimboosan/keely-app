@@ -1,18 +1,19 @@
-// Reading a story's structure for the restructure engine (D-157, D-158).
+// Reading a story's structure for the restructure engine (D-157, D-181).
 //
 // A story's scenes folder holds scenes (folders with an index.md) and
-// containers (arcs and chapters: folders without one), nested at most
-// root → arc → chapter → scene. Folder names follow D-158 (names.mjs):
-// alphabetical order is reading order. The engine reads siblings by the
-// *value* of their position — a scene's number, a container's marker; a
-// scene before a container sharing its number; then tie letters — which is
-// the same order whenever numbers are padded evenly, and repairs it where
-// they aren't (two-digit numbering that reached "100-…", which sorts
-// between "10-…" and "11-…"): a tidy pads them evenly.
+// containers (arcs, chapters and interludes: folders without one), nested
+// at most root → arc → chapter → scene, with interludes holding scenes.
+// Folder names follow names.mjs: alphabetical order is reading order. The
+// engine reads siblings by the *value* of their names, which is the same
+// order whenever numbers are padded evenly, and repairs it where they
+// aren't (two-digit numbering that reached "100-…", which sorts between
+// "10-…" and "11-…"): a tidy pads them evenly.
 //
-// Containers named the pre-D-158 way (no marker) keep the old reading
-// order — a container's loose scenes, then arcs, then chapters — so stories
-// read exactly as they did until their author tidies them.
+// D-181 (and names from before D-158): loose scenes, then arcs and arc-level
+// interludes, then chapters and chapter-level interludes; each by number,
+// an interlude right after the arc or chapter it follows. Stories still
+// named the D-158 or D-180 way read by their position markers or places,
+// until their author updates them.
 //
 // Every function here takes the folder it works on — never a vault
 // location from module-level settings — so one process can serve many
@@ -23,30 +24,28 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { createHash } from 'crypto';
 import { StructureError } from './errors.mjs';
-import { parseFolderName } from './names.mjs';
+import { compareNames, parseFolderName, storyFormat } from './names.mjs';
 
-// Plain name comparison, as the generator orders scene ids (`a.id < b.id`).
-export function compareNames(a, b) {
-  return a < b ? -1 : a > b ? 1 : 0;
-}
+export { compareNames };
 
-const LEGACY_RANK = { scene: 0, arc: 1, chapter: 2 };
+const RANK = { scene: 0, arc: 1, chapter: 2 };
 
 // Reading order of two sibling folders.
 function compareSiblings(a, b) {
-  if (a.legacy || b.legacy) {
-    // Pre-D-158 containers: loose scenes, then arcs, then chapters.
+  if (a.format === 'marker' || b.format === 'marker' || a.format === 'by-position' || b.format === 'by-position') {
+    const position = (n) => (n.kind === 'scene' ? n.number : n.format === 'by-position' ? n.position : n.marker) ?? Infinity;
     return (
-      LEGACY_RANK[a.kind] - LEGACY_RANK[b.kind] ||
-      (a.number ?? Infinity) - (b.number ?? Infinity) ||
+      position(a) - position(b) ||
+      (a.kind === 'scene' ? 0 : 1) - (b.kind === 'scene' ? 0 : 1) ||
+      compareNames(a.tie ?? '', b.tie ?? '') ||
       compareNames(a.name, b.name)
     );
   }
-  const position = (n) => (n.kind === 'scene' ? n.number : n.marker) ?? Infinity;
+  const rank = (n) => RANK[n.kind === 'interlude' ? n.level : n.kind];
   return (
-    position(a) - position(b) ||
-    (a.kind === 'scene' ? 0 : 1) - (b.kind === 'scene' ? 0 : 1) ||
-    compareNames(a.tie ?? '', b.tie ?? '') ||
+    rank(a) - rank(b) ||
+    (a.number ?? Infinity) - (b.number ?? Infinity) ||
+    (a.interlude ?? 0) - (b.interlude ?? 0) ||
     compareNames(a.name, b.name)
   );
 }
@@ -54,10 +53,13 @@ function compareSiblings(a, b) {
 // The story's tree, its scenes' file contents, and a fingerprint of both.
 //
 //   tree:     [{ kind, id, name, number, width, bare, children? }] — and,
-//             for arcs and chapters, marker/markerWidth/tie/legacy (names.mjs)
+//             for arcs, chapters and interludes, level/interlude/format and
+//             the older formats' marker/tie/position (names.mjs)
 //             `id` is the node's path relative to the scenes folder — unique
 //             even if two folders share a name in different containers.
 //   contents: Map of scene id → its index.md text (for link rewriting)
+//   format:   'current', 'marker' or 'by-position' (storyFormat), which
+//             also decides how an ambiguous arc or chapter name is read
 //   fingerprint: changes if any folder or file in the story is added,
 //             removed, renamed, or any scene's text changes. A plan is only
 //             applied over the exact story it was made from.
@@ -79,19 +81,30 @@ export async function readStory(scenesRoot) {
       if (existsSync(join(full, 'index.md'))) {
         contents.set(path, await readFile(join(full, 'index.md'), 'utf-8'));
         await walkFiles(full, path); // a scene's own images and notes count too
-        nodes.push({ id: path, name: entry.name, ...parseFolderName(entry.name, { isScene: true }) });
+        nodes.push({ id: path, name: entry.name, scene: true });
         continue;
       }
-      const parsed = parseFolderName(entry.name);
-      if (!parsed || parsed.kind === 'scene') {
-        throw new StructureError(
-          'unknown-folder',
-          `Keely can't reorder this story: the folder "${path}" isn't a scene, an arc or a chapter.`
-        );
-      }
-      nodes.push({ id: path, name: entry.name, ...parsed, children: await walk(full, path) });
+      nodes.push({ id: path, name: entry.name, children: await walk(full, path) });
     }
-    return nodes.sort(compareSiblings);
+    return nodes;
+  }
+
+  // Names are read once the whole story is known: an arc or chapter name
+  // can fit two formats, and the story says which (storyFormat).
+  function parse(nodes, format) {
+    return nodes
+      .map((node) => {
+        if (node.scene) return { id: node.id, name: node.name, ...parseFolderName(node.name, { isScene: true }) };
+        const parsed = parseFolderName(node.name, { format });
+        if (!parsed || parsed.kind === 'scene') {
+          throw new StructureError(
+            'unknown-folder',
+            `Keely can't reorder this story: the folder "${node.id}" isn't a scene, an arc, a chapter or an interlude.`
+          );
+        }
+        return { id: node.id, name: node.name, ...parsed, children: parse(node.children, format) };
+      })
+      .sort(compareSiblings);
   }
 
   // Everything inside a scene folder, for the fingerprint only.
@@ -104,9 +117,11 @@ export async function readStory(scenesRoot) {
     }
   }
 
-  const tree = await walk(scenesRoot, '');
+  const raw = await walk(scenesRoot, '');
+  const format = storyFormat([...contents.keys()]);
+  const tree = parse(raw, format);
   const hash = createHash('sha256');
   for (const path of listing.sort(compareNames)) hash.update(`${path}\n`);
   for (const [id, text] of [...contents].sort(([a], [b]) => compareNames(a, b))) hash.update(`${id}\n${text}\n`);
-  return { tree, contents, fingerprint: hash.digest('hex') };
+  return { tree, contents, format, fingerprint: hash.digest('hex') };
 }

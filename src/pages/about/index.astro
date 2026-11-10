@@ -1,4 +1,5 @@
 ---
+import { siteCrumbs } from '../../utils/crumbs.js';
 import { findImage } from '../../utils/findImage.js';
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import { getPublisherConfig, getAuthors } from '../../utils/config.js';
@@ -13,8 +14,7 @@ const allImages = import.meta.glob('@vault/data/**/*.{jpg,png,webp,gif,svg}', { 
 
 <SiteLayout
   title={`About — ${publisher.name}`}
-  backLink="/"
-  backLabel={publisher.name}
+  crumbs={siteCrumbs()}
 >
   <div class="about-page">
 

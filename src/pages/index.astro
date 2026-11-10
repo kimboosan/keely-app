@@ -1,4 +1,5 @@
 ---
+import { url } from '../utils/url.js';
 import SiteLayout from '../layouts/SiteLayout.astro';
 import { getPublisherConfig, getProjects } from '../utils/config.js';
 import { renderProse } from '../utils/externalLinks.mjs';
@@ -18,10 +19,10 @@ const aboutLabel = publisher.about_label ?? 'About the Author';
     {publisher.storefront_blurb && <div class="publisher-blurb" set:html={renderProse(publisher.storefront_blurb)} />}
 
     <div class="publisher-nav">
-      <a href="/projects" class="publisher-nav-card">
+      <a href={url('/projects')} class="publisher-nav-card">
         <span class="publisher-nav-card-label">{projectsLabel}</span>
       </a>
-      <a href="/about" class="publisher-nav-card">
+      <a href={url('/about')} class="publisher-nav-card">
         <span class="publisher-nav-card-label">{aboutLabel}</span>
       </a>
     </div>

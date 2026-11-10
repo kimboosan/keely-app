@@ -16,6 +16,7 @@ import { rehypeCollapseSpoilers } from './rehype-collapse-spoilers.js';
 import { rehypeExternalLinks } from './externalLinks.mjs';
 import { resolveWikiLinks } from '../shared/wikiLinks.mjs';
 import { readEntityIndex, readOtherProject } from './projectIndex.mjs';
+import { BASE } from './url.js';
 
 export const markdownOptions = {
   rehypePlugins: [rehypeCollapseSpoilers, rehypeExternalLinks],
@@ -27,6 +28,6 @@ let processor;
 // (`text`) field — as HTML, for `<Fragment set:html={…} />`.
 export async function renderEntityMarkdown(markdown, project) {
   processor ??= await createMarkdownProcessor(markdownOptions);
-  const { code } = await processor.render(resolveWikiLinks(markdown, { project, entityIndex: readEntityIndex(project), otherProject: readOtherProject }));
+  const { code } = await processor.render(resolveWikiLinks(markdown, { project, entityIndex: readEntityIndex(project), otherProject: readOtherProject, base: BASE }));
   return code;
 }

@@ -13,7 +13,7 @@ export function resolveWikiLinks(
     project: string;
     entityIndex: Record<string, EntityIndexEntry>;
     otherProject?: ((projectSlug: string) => { title?: string; entityIndex: Record<string, EntityIndexEntry> } | null) | null;
-    scenes?: { id: string; title: string }[] | null;
+    scenes?: { id: string; title: string; folder?: string }[] | null;
     storySlug?: string | null;
     imageBase?: string | null;
   },

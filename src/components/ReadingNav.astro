@@ -1,0 +1,27 @@
+---
+import { url } from '../utils/url.js';
+import { sceneTitle } from '../structure/names.mjs';
+// Previous and Next at the foot of a scene page or an arc's or chapter's
+// page (D-170). `prev` and `next` are items from storyReading()'s sequence,
+// so arc and chapter pages sit in the reading flow. reader.js rewrites
+// these only while a reading thread (POV, thread) is chosen, scene to scene.
+const { project, storySlug, completionStatus, prev = null, next = null } = Astro.props;
+
+const label = (item) =>
+  item.type === 'scene' ? `${item.sceneNumber}. ${sceneTitle(item.scene.data.title, item.folder)}` : item.label;
+const href = (item) =>
+  item.type === 'scene' ? url(`/${project}/stories/${storySlug}/scenes/${item.slug}`) : item.href;
+---
+
+<nav
+  style="display: flex; justify-content: space-between; gap: 1.5rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ccc;"
+  data-completion-status={completionStatus}>
+  {prev
+    ? <a href={href(prev)}>&larr; {label(prev)}</a>
+    : <a href={url(`/${project}/stories/${storySlug}`)}>&larr; Story Home</a>
+  }
+  {next
+    ? <a href={href(next)}>{label(next)} &rarr;</a>
+    : <span style="color: #999;">{completionStatus === 'complete' ? 'End →' : 'To be continued...'}</span>
+  }
+</nav>

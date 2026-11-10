@@ -1,0 +1,78 @@
+---
+import { getCollection } from 'astro:content';
+import { url } from '../utils/url.js';
+import { getStoriesForProject } from '../utils/config.js';
+import { isPublished } from '../utils/published.mjs';
+// An entity page's scene list — Appears In, Scenes at This Location,
+// Mentioned In — for every entity type (D-171). `scenes` are the computed
+// scene references ({ slug, storySlug, title }), already in reading order.
+//
+// A one-story project lists its scenes as it always has. With several
+// stories, scenes are grouped under their story, folded until opened, and
+// a story whose every published scene is in the list says so instead of
+// listing them all. A one-scene story is just its link.
+const { project, heading, scenes = [] } = Astro.props;
+
+const stories = getStoriesForProject(project);
+const grouped = stories.length > 1;
+
+let groups = [];
+if (grouped && scenes.length) {
+  // Published scenes per story: the same scenes the lists are built from.
+  const totals = new Map();
+  for (const scene of await getCollection('scenes')) {
+    if (!isPublished(scene.data)) continue;
+    const [sceneProject, story] = scene.id.split('/');
+    if (sceneProject === project) totals.set(story, (totals.get(story) ?? 0) + 1);
+  }
+  groups = stories
+    .map((story) => ({
+      ...story,
+      scenes: scenes.filter((s) => s.storySlug === story.slug),
+      total: totals.get(story.slug) ?? 0,
+    }))
+    .filter((group) => group.scenes.length);
+}
+
+const sceneHref = (scene) => url(`/${project}/stories/${scene.storySlug}/scenes/${scene.slug}`);
+const storyHref = (story) => url(`/${project}/stories/${story.slug}`);
+const count = (n) => `${n} scene${n === 1 ? '' : 's'}`;
+---
+
+{scenes.length > 0 && (
+  <div class="entity-appearances">
+    <h2>{heading}</h2>
+    {grouped ? (
+      <ul class="scene-groups">
+        {groups.map((story) => (
+          <li>
+            {story.total <= 1 ? (
+              <a href={storyHref(story)}>{story.title}</a>
+            ) : story.scenes.length >= story.total ? (
+              <><a href={storyHref(story)}>{story.title}</a>{" "}<span class="scene-group-count">· Every scene in story</span></>
+            ) : (
+              <details>
+                <summary><a href={storyHref(story)}>{story.title}</a>{" "}<span class="scene-group-count">· {count(story.scenes.length)}</span></summary>
+                <ul>
+                  {story.scenes.map((scene) => (
+                    <li><a href={sceneHref(scene)}>{scene.title}</a></li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <ul>
+        {scenes.map(scene => (
+          <li>
+            <a href={sceneHref(scene)}>
+              {scene.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+)}

@@ -1,0 +1,44 @@
+---
+import { url } from '../utils/url.js';
+import { getPublisherConfig } from '../utils/config.js';
+// The adult-content notice (D-173): with `adult_notice = true` in
+// publisher.toml, a page rated Mature or Explicit opens behind this notice.
+// The rating is the page's own: an arc's or chapter's when it has one,
+// covering its page and its scenes, else the story's (D-173 as amended), so
+// a General fic in a series that's Explicit overall isn't hidden. Continue
+// is remembered per story, by level: Explicit covers Mature, not the other
+// way round. Off in the preview, so an author isn't stopped by their own work.
+const { project, storySlug, title, rating } = Astro.props;
+const LEVELS = { Mature: 1, Explicit: 2 };
+const show = getPublisherConfig().adult_notice === true && LEVELS[rating] && !import.meta.env.DEV;
+const key = `keely-adult-ok:${project}/${storySlug}`;
+const level = LEVELS[rating];
+---
+
+{show && (
+  <>
+    <div id="adult-notice" role="dialog" aria-modal="true" aria-labelledby="adult-notice-title">
+      <div class="adult-notice-box">
+        <h2 id="adult-notice-title">{title} is rated {rating}</h2>
+        <p>It's meant for adult readers.</p>
+        <div class="adult-notice-actions">
+          <button type="button" id="adult-notice-continue">Continue</button>
+          <a href={url(`/projects/${project}`)}>Go back</a>
+        </div>
+      </div>
+    </div>
+    <script is:inline define:vars={{ key, level }}>
+      (() => {
+        const notice = document.getElementById('adult-notice');
+        let agreed = 0;
+        try { agreed = Number(localStorage.getItem(key)) || 0; } catch {}
+        if (agreed >= level) { notice.remove(); return; }
+        document.getElementById('adult-notice-continue').addEventListener('click', () => {
+          try { localStorage.setItem(key, String(level)); } catch {}
+          notice.remove();
+        });
+      })();
+    </script>
+    <noscript><style>#adult-notice { display: none; }</style></noscript>
+  </>
+)}

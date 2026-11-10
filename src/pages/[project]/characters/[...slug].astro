@@ -1,4 +1,6 @@
 ---
+import { wikiCrumbs } from '../../../utils/crumbs.js';
+import { url } from '../../../utils/url.js';
 import { findImage } from '../../../utils/findImage.js';
 import { getCollection } from 'astro:content';
 import { renderEntityMarkdown } from '../../../utils/markdown.mjs';
@@ -8,6 +10,7 @@ import { Image } from 'astro:assets';
 import { getProjects, getProjectConfig } from '../../../utils/config.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { slugify } from '../../../utils/config.js';
+import SceneList from '../../../components/SceneList.astro';
 
 export async function getStaticPaths() {
   const characters = await getCollection('characters');
@@ -54,8 +57,7 @@ function getDisplayName(character) {
 
 <SiteLayout
   title={`${getDisplayName(character)} — ${projectConfig.title}`}
-  backLink={`/${project}/characters`}
-  backLabel="Characters"
+  crumbs={[...wikiCrumbs(project), { href: `/${project}/characters`, label: 'Characters' }]}
 >
   <main class="entity-page">
     <h1>{getDisplayName(character)}</h1>
@@ -88,35 +90,9 @@ function getDisplayName(character) {
       <Fragment set:html={bodyHtml} />
     </div>
 
-    {appearsIn.length > 0 && (
-      <div class="entity-appearances">
-        <h2>Appears In</h2>
-        <ul>
-          {appearsIn.map(scene => (
-            <li>
-              <a href={`/${project}/stories/${scene.storySlug}/scenes/${scene.slug}`}>
-                {scene.title}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
+    <SceneList project={project} heading="Appears In" scenes={appearsIn} />
 
-    {mentionedInOnly.length > 0 && (
-      <div class="entity-appearances">
-        <h2>Mentioned In</h2>
-        <ul>
-          {mentionedInOnly.map(scene => (
-            <li>
-              <a href={`/${project}/stories/${scene.storySlug}/scenes/${scene.slug}`}>
-                {scene.title}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
+    <SceneList project={project} heading="Mentioned In" scenes={mentionedInOnly} />
 
     {character.data.tags && character.data.tags.length > 0 && (
       <div class="entity-tags">
@@ -124,7 +100,7 @@ function getDisplayName(character) {
         <ul>
           {character.data.tags.map(tag => (
             <li class="tag">
-              <a href={`/${project}/tags/${slugify(tag)}`}>{tag}</a>
+              <a href={url(`/${project}/tags/${slugify(tag)}`)}>{tag}</a>
             </li>
           ))}
         </ul>

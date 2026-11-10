@@ -140,7 +140,8 @@ export async function applyPlan(scenesRoot, plan, { journalDir, failAfterSteps }
     if (plan.relocations.length) rmdir(holding);
 
     // Links. Each file must still hold exactly what the plan saw.
-    const renames = new Map(Object.entries(plan.sceneRenames));
+    // Links follow scene names, not folders (D-180): `linkRenames`.
+    const renames = new Map(Object.entries(plan.linkRenames ?? {}));
     for (const rewrite of plan.linkRewrites) {
       const file = join(abs(rewrite.scene), 'index.md');
       const before = readFileSync(file, 'utf-8');

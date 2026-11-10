@@ -1,0 +1,110 @@
+---
+import { getProjects, getStoriesForProject, getStoryConfig } from '../../../../utils/config.js';
+import { storyReading } from '../../../../utils/storyReading.js';
+import { url } from '../../../../utils/url.js';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import NavPanel from '../../../../components/NavPanel.astro';
+import ReadingNav from '../../../../components/ReadingNav.astro';
+import TagList from '../../../../components/TagList.astro';
+
+// An arc's or chapter's own page (D-170), like a book's "Part" page: its
+// label and title, rating, summary and tags. It sits in the reading flow:
+// Next from the scene before it comes here, and its Next goes on to its
+// first scene. The address is its folder name without the position marker.
+//
+// As amended 2026-11-06, it reads as a cover page even when the author has
+// written nothing for it: the title is centred, a line above it says where
+// the page sits and what it holds (from the structure, so it's always
+// there), and Begin goes to its first scene.
+export async function getStaticPaths() {
+  const paths = [];
+  for (const project of getProjects()) {
+    for (const story of getStoriesForProject(project.slug)) {
+      const { hierarchy, sequence } = await storyReading(project.slug, story.slug);
+      sequence.forEach((item, at) => {
+        if (item.type === 'scene') return;
+        // Its place among the story's arcs, or chapters: each kind is
+        // numbered across the whole story (D-067).
+        const sameKind = sequence.filter((s) => s.type === item.type);
+        paths.push({
+          params: { project: project.slug, story: story.slug, part: item.slug },
+          props: {
+            container: item,
+            position: sameKind.indexOf(item) + 1,
+            ofKind: sameKind.length,
+            prev: sequence[at - 1] ?? null,
+            next: sequence[at + 1] ?? null,
+            hierarchy,
+          },
+        });
+      });
+    }
+  }
+  return paths;
+}
+
+const { project, story: storySlug } = Astro.params;
+const { container, position, ofKind, prev, next, hierarchy } = Astro.props;
+const storyConfig = getStoryConfig(project, storySlug);
+const { summary, rating, tags = [] } = container.meta;
+// Summaries are plain text; a blank line starts a new paragraph.
+const paragraphs = (summary ?? '').split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+
+// What it holds, as a reader sees it: published scenes only, as
+// storyReading() gives them, and the chapters directly inside an arc.
+const scenesIn = (node) => node.children.flatMap((c) => (c.type === 'scene' ? [c] : scenesIn(c)));
+const scenes = scenesIn(container);
+const chapters = container.children.filter((c) => c.type === 'chapter').length;
+const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+const kindWord = container.type === 'arc' ? 'Arc' : 'Chapter';
+// An interlude isn't counted among arcs or chapters (D-181): it's named, not numbered.
+const placeText = container.type === 'interlude' ? 'Interlude' : `${kindWord} ${position} of ${ofKind}`;
+const holds = [chapters > 0 && count(chapters, 'chapter'), count(scenes.length, 'scene')].filter(Boolean).join(', ');
+
+const first = scenes[0];
+const beginHref = first && url(`/${project}/stories/${storySlug}/scenes/${first.slug}`);
+---
+
+<BaseLayout
+  title={`${container.label} — ${storyConfig.title}`}
+  rated={container.rated}
+  trail={container.trail}
+  projectSlug={project}
+  storySlug={storySlug}
+  sidebarCollapsed={storyConfig.reader_defaults?.sidebar_collapsed ?? false}
+>
+  <Fragment slot="prose">
+    <div class="part-page">
+      <p class="part-kicker">
+        <span class="part-bit"><a href={url(`/${project}/stories/${storySlug}`)}>{storyConfig.title}</a></span>
+        {container.trail.map((t) => <><span class="part-sep">·</span><span class="part-bit"><a href={url(t.href)}>{t.label}</a></span></>)}
+        <span class="part-sep">·</span><span class="part-bit">{placeText}</span>
+        <span class="part-sep">·</span><span class="part-bit">{holds}</span>
+      </p>
+      <h1>{container.label}</h1>
+      {rating && (
+        <div class="story-meta-tags">
+          <span class="meta-rating">{rating}</span>
+        </div>
+      )}
+      {paragraphs.length > 0 && (
+        <div class="story-summary">
+          {paragraphs.map((p) => <p>{p}</p>)}
+        </div>
+      )}
+      <TagList project={project} tags={tags} inline />
+      {beginHref && <p class="part-begin"><a href={beginHref}>Begin &rarr;</a></p>}
+    </div>
+    <ReadingNav project={project} storySlug={storySlug} completionStatus={storyConfig.completion_status} prev={prev} next={next} />
+  </Fragment>
+
+  <Fragment slot="wiki">
+    <NavPanel hierarchy={hierarchy} currentContainer={container.slug} storySlug={storySlug} projectSlug={project} open />
+    <div id="scene-info" style="display:none;"></div>
+    <div id="entity-content" style="display:none;"></div>
+    <div id="wiki-nav-controls" style="display:flex; justify-content:space-between; padding:1rem 0; border-top:1px solid #ccc; margin-top:1rem;">
+      <button id="back-btn" disabled>&larr; Back</button>
+      <button id="forward-btn" disabled>Forward &rarr;</button>
+    </div>
+  </Fragment>
+</BaseLayout>

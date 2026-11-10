@@ -225,6 +225,8 @@ narrative_mode: z.enum(['first-person', 'third-limited', 'third-omniscient', 'th
     characters_in_scene: z.array(z.string()).optional(),
     scene_location: z.string().optional(),
     also_at: z.array(z.string()).optional(),
+    // Other entries the scene features, by type (D-172): { relationships: [...] }
+    featuring: z.record(z.string(), z.union([z.array(z.string()), z.string()])).optional(),
 
     // Discoverability
     threads: z.array(z.string()).optional(),

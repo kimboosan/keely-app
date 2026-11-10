@@ -16,9 +16,13 @@
 // Only [[project/slug]] does (D-164), through `otherProject(projectSlug)`,
 // which gives that project's { title, entityIndex }, or null if there's no
 // such project; without it, such links are "not yet" links.
-// `scenes` ({ id, title }[]) and `storySlug` enable scene links; `imageBase`
+// `scenes` ({ id, title, folder? }[]) and `storySlug` enable scene links:
+// `id` is the scene's address (D-180, `breakdown`), and `folder` its folder
+// name, which a link written before D-180 may use (`[[05-breakdown]]`);
+// either finds the scene, and the link goes to its address. `imageBase`
 // (the URL folder of the scene's copied images) enables inline images.
-export function resolveWikiLinks(text, { project, entityIndex, otherProject = null, scenes = null, storySlug = null, imageBase = null }) {
+// `base` is the site's subfolder, '' at the top of an address (D-168).
+export function resolveWikiLinks(text, { project, entityIndex, otherProject = null, scenes = null, storySlug = null, imageBase = null, base = '' }) {
   let out = text ?? '';
   if (imageBase) {
     out = out.replace(/\[\[image:([^\]|]+)\|?([^\]]*)\]\]/g, (match, filename, alt) => {
@@ -41,17 +45,17 @@ export function resolveWikiLinks(text, { project, entityIndex, otherProject = nu
       }
       // reader.js shows "From …" above the page in the wiki pane.
       const from = other.title ? ` data-project-name="${other.title.replace(/"/g, '&quot;')}"` : '';
-      return `<a href="/${linkProject}/${entity.urlPrefix}/${slug}" class="wiki-link" data-entity="${slug}"${from}>${alias ?? entity.short_name ?? entity.name}</a>`;
+      return `<a href="${base}/${linkProject}/${entity.urlPrefix}/${slug}" class="wiki-link" data-entity="${slug}"${from}>${alias ?? entity.short_name ?? entity.name}</a>`;
     }
     const slug = target;
     const entity = entityIndex[slug];
     // A link to another scene in this story (D-135 offers them in the
     // app's autocomplete). Its own class, not `wiki-link`: reader.js opens
     // wiki-links in the wiki pane, while scene links navigate the prose pane.
-    const linkedScene = entity || !scenes ? null : scenes.find(s => s.id === slug);
+    const linkedScene = entity || !scenes ? null : scenes.find(s => s.id === slug) ?? scenes.find(s => s.folder === slug);
     if (linkedScene) {
-      const href = `/${project}/stories/${storySlug}/scenes/${slug}`;
-      return `<a href="${href}" class="scene-link" data-scene="${slug}">${alias ?? linkedScene.title}</a>`;
+      const href = `${base}/${project}/stories/${storySlug}/scenes/${linkedScene.id}`;
+      return `<a href="${href}" class="scene-link" data-scene="${linkedScene.id}">${alias ?? linkedScene.title}</a>`;
     }
     const displayName = alias ?? (entity ? (entity.short_name ?? entity.name) : slug);
     // A link to something not created yet is a "not yet" link (D-156): no
@@ -62,7 +66,7 @@ export function resolveWikiLinks(text, { project, entityIndex, otherProject = nu
     if (!entity) {
       return `<a class="unresolved" data-entity="${slug}" title="No page yet">${displayName}</a>`;
     }
-    return `<a href="/${project}/${entity.urlPrefix}/${slug}" class="wiki-link" data-entity="${slug}">${displayName}</a>`;
+    return `<a href="${base}/${project}/${entity.urlPrefix}/${slug}" class="wiki-link" data-entity="${slug}">${displayName}</a>`;
   });
 }
 

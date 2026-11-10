@@ -2,10 +2,17 @@
 import { defineConfig } from 'astro/config';
 import { markdownOptions } from './src/utils/markdown.mjs';
 import { VAULT } from './src/utils/vault.mjs';
+import { siteAddress } from './src/utils/siteAddress.mjs';
+
+// Where the built site will live, maybe in a subfolder (D-168). The preview
+// always runs at the top of its own address, which the app relies on
+// (src/lib/preview.ts).
+const { site, base } = process.argv.includes('dev') ? { site: undefined, base: '/' } : siteAddress();
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://your-site-url.com',
+  site,
+  base,
   // Astro's developer toolbar is a tool for site developers; on the
   // preview server it would sit on top of an author's preview (D-153).
   devToolbar: { enabled: false },

@@ -1,4 +1,6 @@
 ---
+import { wikiCrumbs } from '../../../utils/crumbs.js';
+import { url } from '../../../utils/url.js';
 import { findImage } from '../../../utils/findImage.js';
 import { getCollection } from 'astro:content';
 import { renderEntityMarkdown } from '../../../utils/markdown.mjs';
@@ -8,6 +10,7 @@ import { Image } from 'astro:assets';
 import { getProjects, getProjectConfig } from '../../../utils/config.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { slugify } from '../../../utils/config.js';
+import SceneList from '../../../components/SceneList.astro';
 
 export async function getStaticPaths() {
   const places = await getCollection('places');
@@ -45,8 +48,7 @@ const placeImage = place.data.image
 
 <SiteLayout
   title={`${place.data.name} — ${projectConfig.title}`}
-  backLink={`/${project}/places`}
-  backLabel="Places"
+  crumbs={[...wikiCrumbs(project), { href: `/${project}/places`, label: 'Places' }]}
 >
   <main class="entity-page">
     <h1>{place.data.name}</h1>
@@ -87,35 +89,9 @@ const placeImage = place.data.image
       <Fragment set:html={bodyHtml} />
     </div>
 
-    {scenesAtLocation.length > 0 && (
-      <div class="entity-appearances">
-        <h2>Scenes at This Location</h2>
-        <ul>
-          {scenesAtLocation.map(scene => (
-            <li>
-              <a href={`/${project}/stories/${scene.storySlug}/scenes/${scene.slug}`}>
-                {scene.title}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
+    <SceneList project={project} heading="Scenes at This Location" scenes={scenesAtLocation} />
 
-    {mentionedInOnly.length > 0 && (
-      <div class="entity-appearances">
-        <h2>Mentioned In</h2>
-        <ul>
-          {mentionedInOnly.map(scene => (
-            <li>
-              <a href={`/${project}/stories/${scene.storySlug}/scenes/${scene.slug}`}>
-                {scene.title}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
+    <SceneList project={project} heading="Mentioned In" scenes={mentionedInOnly} />
 
     {place.data.tags && place.data.tags.length > 0 && (
       <div class="entity-tags">
@@ -123,7 +99,7 @@ const placeImage = place.data.image
         <ul>
           {place.data.tags.map(tag => (
             <li class="tag">
-              <a href={`/${project}/tags/${slugify(tag)}`}>{tag}</a>
+              <a href={url(`/${project}/tags/${slugify(tag)}`)}>{tag}</a>
             </li>
           ))}
         </ul>

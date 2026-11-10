@@ -1,4 +1,6 @@
 ---
+import { wikiCrumbs } from '../../../utils/crumbs.js';
+import { url } from '../../../utils/url.js';
 import { entriesIn, entrySlug } from '../../../utils/entries.mjs';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 import { getCollection } from 'astro:content';
@@ -30,14 +32,13 @@ const sortedPlaces = [...allPlaces].sort((a, b) =>
 
 <SiteLayout
   title={`Places — ${projectConfig.title}`}
-  backLink={`/${project}/wiki`}
-  backLabel="Wiki"
+  crumbs={wikiCrumbs(project)}
 >
   <div class="entity-index">
     <h1>Places</h1>
     <div class="entity-grid">
       {sortedPlaces.map(place => (
-        <a class="entity-card" href={`/${project}/places/${entrySlug(place)}`}>
+        <a class="entity-card" href={url(`/${project}/places/${entrySlug(place)}`)}>
           <div class="entity-card-name">{getDisplayName(place)}</div>
           {place.data.function && (
             <div class="entity-card-sub">{place.data.function}</div>

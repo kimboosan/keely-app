@@ -1,11 +1,19 @@
 ---
-// The story's navigation (scene pages). `hierarchy` is the story as it sits
-// on disk, in reading order: arcs, chapters and loose scenes, nested and in
-// any order (D-158) — rendered recursively, with the same markup and
-// classes at every level so reader.js and reader.css keep working.
-const { hierarchy, currentSceneId, storySlug, projectSlug, nested = false } = Astro.props;
-const sceneSlug = (scene) => scene.id.split('/').pop();
-const href = (scene) => `/${projectSlug}/stories/${storySlug}/scenes/${sceneSlug(scene)}`;
+import { url } from '../utils/url.js';
+import { sceneTitle } from '../structure/names.mjs';
+// The story's navigation (scene pages, arc and chapter pages, the story
+// page). `hierarchy` is the story as it sits on disk, in reading order:
+// arcs, chapters and loose scenes, nested and in any order (D-158) —
+// rendered recursively, with the same markup and classes at every level so
+// reader.js and reader.css keep working. Arc and chapter titles link to
+// their pages (D-170). `open` shows it on arrival, as the story page and
+// arc and chapter pages do; `currentContainer` marks the arc or chapter
+// whose page this is.
+const { hierarchy, currentSceneId, currentContainer, storySlug, projectSlug, nested = false, open = false } = Astro.props;
+const labelClass = (node, base) => (node.slug === currentContainer ? `${base} current` : base);
+// A scene item's `slug` is its address (D-180), from storyReading.
+const href = (item) => url(`/${projectSlug}/stories/${storySlug}/scenes/${item.slug}`);
+const title = (item) => sceneTitle(item.scene.data.title, item.folder);
 ---
 
 {nested ? (
@@ -13,19 +21,26 @@ const href = (scene) => `/${projectSlug}/stories/${storySlug}/scenes/${sceneSlug
     if (node.type === 'arc') {
       return (
         <div class="nav-arc">
-          <div class="nav-arc-label">{node.label}</div>
-          <Astro.self hierarchy={node.children} currentSceneId={currentSceneId} storySlug={storySlug} projectSlug={projectSlug} nested />
+          <div class={labelClass(node, 'nav-arc-label')}><a href={node.href}>{node.label}</a></div>
+          <Astro.self hierarchy={node.children} currentSceneId={currentSceneId} currentContainer={currentContainer} storySlug={storySlug} projectSlug={projectSlug} nested />
         </div>
       );
     }
-    if (node.type === 'chapter') {
+    if (node.type === 'chapter' || node.type === 'interlude') {
+      // An interlude (D-181) holds scenes as a chapter does, at its level:
+      // among arcs it sits flush, as an arc does. Its label is its title,
+      // marked as an interlude.
+      const interlude = node.type === 'interlude';
       return (
-        <div class="nav-chapter">
-          <div class="nav-chapter-label">{node.label}</div>
+        <div class={interlude ? `nav-chapter nav-interlude${node.level === 'arc' ? ' nav-interlude-top' : ''}` : 'nav-chapter'}>
+          <div class={labelClass(node, 'nav-chapter-label')}>
+            <a href={node.href}>{node.label}</a>
+            {interlude && <span class="nav-interlude-mark">Interlude</span>}
+          </div>
           <ul class="nav-scene-list">
-            {node.children.map(({ scene, sceneNumber }) => (
-              <li class={sceneSlug(scene) === currentSceneId ? 'current' : ''}>
-                <a href={href(scene)}>{sceneNumber}. {scene.data.title}</a>
+            {node.children.map((item) => (
+              <li class={item.slug === currentSceneId ? 'current' : ''}>
+                <a href={href(item)}>{item.sceneNumber}. {title(item)}</a>
               </li>
             ))}
           </ul>
@@ -34,16 +49,16 @@ const href = (scene) => `/${projectSlug}/stories/${storySlug}/scenes/${sceneSlug
     }
     return (
       <ul class="nav-scene-list">
-        <li class={sceneSlug(node.scene) === currentSceneId ? 'current' : ''}>
-          <a href={href(node.scene)}>{node.sceneNumber}. {node.scene.data.title}</a>
+        <li class={node.slug === currentSceneId ? 'current' : ''}>
+          <a href={href(node)}>{node.sceneNumber}. {title(node)}</a>
         </li>
       </ul>
     );
   })
 ) : (
-  <div id="nav-panel" style="display:none;">
+  <div id="nav-panel" style={open ? undefined : 'display:none;'}>
     <h3>Story Navigation</h3>
-    <Astro.self hierarchy={hierarchy} currentSceneId={currentSceneId} storySlug={storySlug} projectSlug={projectSlug} nested />
+    <Astro.self hierarchy={hierarchy} currentSceneId={currentSceneId} currentContainer={currentContainer} storySlug={storySlug} projectSlug={projectSlug} nested />
   </div>
 )}
 <style>
@@ -52,6 +67,11 @@ const href = (scene) => `/${projectSlug}/stories/${storySlug}/scenes/${sceneSlug
   #nav-panel .nav-arc-label { font-weight: bold; font-size: 0.95rem; margin-bottom: 0.4rem; }
   #nav-panel .nav-chapter { margin-left: 0.75rem; margin-bottom: 0.5rem; }
   #nav-panel .nav-chapter-label { font-size: 0.85rem; color: #555; margin-bottom: 0.3rem; }
+  #nav-panel .nav-interlude-top { margin-left: 0; }
+  #nav-panel .nav-interlude-mark { margin-left: 0.4rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; }
+  #nav-panel .nav-arc-label a, #nav-panel .nav-chapter-label a { color: inherit; text-decoration: none; }
+  #nav-panel .nav-arc-label a:hover, #nav-panel .nav-chapter-label a:hover { text-decoration: underline; }
+  #nav-panel .current > a { color: #1a1a2e; text-decoration: underline; }
   #nav-panel .nav-scene-list { list-style: none; margin-left: 0.75rem; }
   #nav-panel .nav-scene-list li { margin-bottom: 0.2rem; }
   #nav-panel .nav-scene-list a { font-size: 0.9rem; color: #333; text-decoration: none; }

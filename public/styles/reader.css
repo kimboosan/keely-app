@@ -10,6 +10,7 @@
   /* Colors */
   --color-bg: #f8f6f2;
   --color-text: #1a1a1a;
+  --color-text-muted: #6b6b6b;
   --color-link: #4a3f8f;
   --color-link-hover: #2d2660;
   --color-border: #cccccc;
@@ -67,6 +68,15 @@ body.site-layout {
   height: auto;
 }
 
+/* Every block below the header takes the page's full width. In the body's
+   column, a block centred with `margin: 0 auto` would otherwise shrink to
+   its contents: a Projects page without taglines fell to one card per row,
+   and index pages sat wherever their width put them. Their own
+   max-width still sets how wide they read. */
+body.site-layout > * {
+  width: 100%;
+}
+
 /* ------------------------------------------------------------
    Site header
    ------------------------------------------------------------ */
@@ -83,10 +93,67 @@ body.site-layout {
   z-index: 10;
 }
 
-/* The logo (or name) and the ⚙ button sit side by side. */
-#header-right {
+/* The breadcrumbs (D-177) and the logo side share the room either side of
+   the Navigation and Wiki buttons, which stay centred; a long trail
+   shortens its titles rather than pushing them aside. */
+#header-left {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-right: 1rem;
+}
+
+#header-center {
+  flex: none;
+}
+
+.crumbs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   align-items: center;
+  min-width: 0;
+}
+
+/* When the trail runs out of room, the far crumbs give way first, down to
+   a few letters, so the nearest (where a reader most often goes back to)
+   stay readable. */
+.crumbs li {
+  display: flex;
+  align-items: center;
+  flex: 0 6 auto;
+  min-width: 3.5em;
+}
+
+.crumbs li:nth-last-child(2) {
+  flex-shrink: 1;
+}
+
+.crumbs li:last-child {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.crumbs li + li::before {
+  content: '›';
+  margin: 0 0.5em;
+  opacity: 0.7;
+}
+
+.crumbs a {
+  display: block;
+  max-width: 14em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The logo (or name) and the ⚙ button sit side by side. */
+#header-right {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 /* The publisher's logo: header height, its width following the logo's shape. */
@@ -368,6 +435,31 @@ hr {
   line-height: 1.5;
 }
 
+#prose-pane .scene-prose ul,
+#prose-pane .scene-prose ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.1em;
+}
+
+#prose-pane .scene-prose li {
+  margin-bottom: 0.4em;
+  line-height: 1.5;
+}
+
+/* Letters, signs, remembered speech. */
+.scene-prose blockquote,
+.entity-prose blockquote {
+  margin: 0 0 1.1em;
+  padding-left: 1em;
+  border-left: 3px solid var(--color-border);
+  color: #555555;
+}
+
+.scene-prose blockquote p:last-child,
+.entity-prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
 .scene-filter {
   margin-top: 0.75rem;
   font-family: var(--font-ui);
@@ -586,6 +678,14 @@ hr {
   opacity: 0.85;
 }
 
+/* Since D-170 the story page sits in the reading pane, whose link colour
+   would otherwise win over the button's white: purple on near-black. */
+#prose-pane a.story-start,
+#prose-pane a.story-start:visited,
+#prose-pane a.story-start:hover {
+  color: white;
+}
+
 .story-block {
   margin-bottom: 1.5rem;
 }
@@ -654,6 +754,55 @@ hr {
   color: #1b4332;
   font-size: 0.85rem;
   border-radius: 3px;
+}
+
+/* An arc's or chapter's page reads as a cover page (D-170, amended
+   2026-11-06): set lower, its heading centred like a book's part page.
+   A summary stays left-aligned in a narrower column, to read easily. */
+.part-page {
+  padding-top: 12vh;
+  max-width: 34em;
+  margin: 0 auto;
+}
+
+.part-kicker,
+.part-page h1,
+.part-page .story-meta-tags,
+.part-begin {
+  text-align: center;
+  justify-content: center;
+}
+
+.part-kicker {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: #6b6b6b;
+  margin-bottom: 0.75rem;
+}
+
+.part-kicker a {
+  color: inherit;
+}
+
+.part-sep {
+  margin: 0 0.5em;
+}
+
+/* Each piece of the line stays whole when it wraps on a phone. */
+.part-bit {
+  white-space: nowrap;
+}
+
+.part-page h1 {
+  font-size: 2.4rem;
+  margin: 0 0 1.5rem;
+}
+
+.part-begin {
+  font-family: var(--font-ui);
+  font-size: 1.1rem;
+  margin: 2.5rem 0 3rem;
 }
 
 .meta-rating {
@@ -738,6 +887,38 @@ hr {
 
 .project-stories a:hover {
   color: var(--color-link-hover);
+}
+
+/* The wiki card ends the project page: quiet, but plainly the last thing
+   on it, and a way into the wiki. */
+.project-wiki-card {
+  display: block;
+  margin: 3rem 0 4rem;
+  padding: 1.1rem 1.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.025);
+  text-decoration: none;
+  font-family: var(--font-ui);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.project-wiki-card:hover {
+  border-color: var(--color-link);
+  background: rgba(74, 63, 143, 0.05);
+}
+
+.project-wiki-card-title {
+  display: block;
+  color: var(--color-link);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.project-wiki-card-holds {
+  display: block;
+  color: #6b6b6b;
+  font-size: 0.85rem;
 }
 
 /* ------------------------------------------------------------
@@ -1212,6 +1393,20 @@ hr {
   margin: 0.3rem 0;
 }
 
+/* Grouped by story (D-171): each story's scenes fold under it. */
+.scene-groups summary {
+  cursor: pointer;
+}
+
+.scene-groups details ul {
+  margin: 0.3rem 0 0.6rem 1.25rem;
+}
+
+.scene-group-count {
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+}
+
 /* ------------------------------------------------------------
    Mobile drawer (max 768px)
    ------------------------------------------------------------ */
@@ -1223,6 +1418,21 @@ hr {
 }
 
 @media (max-width: 768px) {
+  /* Breadcrumbs: only the nearest, as a back link (D-177). */
+  .crumbs li:not(:last-child) {
+    display: none;
+  }
+
+  .crumbs li:last-child {
+    flex-shrink: 1;
+  }
+
+  .crumbs li:last-child::before {
+    content: '←';
+    margin: 0 0.35em 0 0;
+    opacity: 1;
+  }
+
   /* Hide the collapse tab - replaced by header button on mobile */
   #wiki-toggle {
     display: none;
@@ -1263,4 +1473,46 @@ hr {
   #wiki-backdrop.active {
     display: block;
   }
+}
+/* ------------------------------------------------------------
+   Adult-content notice (D-173): covers a Mature or Explicit
+   story's pages until the reader chooses Continue.
+   ------------------------------------------------------------ */
+#adult-notice {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--color-bg);
+  font-family: var(--font-ui);
+}
+
+#adult-notice .adult-notice-box {
+  max-width: 28rem;
+  text-align: center;
+}
+
+#adult-notice h2 {
+  margin-bottom: 0.5rem;
+}
+
+#adult-notice .adult-notice-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+#adult-notice button {
+  background: var(--color-header-bg);
+  color: var(--color-header-text);
+  border: none;
+  border-radius: 4px;
+  padding: 0.6rem 1.4rem;
+  font: inherit;
+  cursor: pointer;
 }

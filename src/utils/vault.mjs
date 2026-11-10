@@ -23,6 +23,8 @@ export const VAULT = resolve(process.env.KEELY_VAULT ?? '.');
 export const CONTENT = `${VAULT}/src/content`;
 export const DATA = `${VAULT}/src/data`;
 export const PROJECTS = `${CONTENT}/projects`;
+// Beside `src/`, so the generator never reads it as content (D-168).
+export const HOSTING = `${VAULT}/keely-hosting.toml`;
 export const CACHE = resolve('./.keely-cache');
 
 // Not in git — created on first use so no writer has to remember to.

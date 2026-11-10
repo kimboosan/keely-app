@@ -33,5 +33,7 @@ export function readRelationships(project) {
     mentionedIn: mine(all.mentionedIn),
     groupMembers: mine(all.groupMembers),
     groupRelationships: all.groupRelationships[project] ?? {},
+    // By type, then slug (D-172).
+    featuredIn: all.featuredIn?.[project] ?? {},
   };
 }

@@ -119,3 +119,13 @@ test('[[project/slug]] with no such project or entity is a "not yet" link', () =
 test('[[own-project/slug]] works like [[slug]], with no "From" note', () => {
   assert.equal(resolve('[[family-feuds/peter]]'), '<a href="/family-feuds/characters/peter" class="wiki-link" data-entity="peter">Peter</a>');
 });
+
+test('a scene link finds its scene by name, or by the folder name an older link uses (D-180)', () => {
+  const scenes = [{ id: 'breakdown', folder: '05-breakdown', title: 'Breakdown' }];
+  const opts = { project: 'p', entityIndex: index, scenes, storySlug: 's' };
+  const expected = '<a href="/p/stories/s/scenes/breakdown" class="scene-link" data-scene="breakdown">Breakdown</a>';
+  assert.equal(resolveWikiLinks('[[breakdown]]', opts), expected);
+  assert.equal(resolveWikiLinks('[[05-breakdown]]', opts), expected);
+  // An entity with the same slug still wins, as before.
+  assert.match(resolveWikiLinks('[[peter]]', { ...opts, scenes: [{ id: 'peter', title: 'Peter' }] }), /wiki-link/);
+});

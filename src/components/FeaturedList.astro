@@ -1,0 +1,40 @@
+---
+import { url } from '../utils/url.js';
+// Featured In (D-172): the stories whose story, arcs or chapters, or scenes
+// list this entry in `featuring`, in the project's story order. Each story
+// links to its page, then to the arcs and chapters that feature the entry;
+// scenes that feature it themselves fold under it, as entity lists do (D-171).
+const { project, featured = [] } = Astro.props;
+
+const storyHref = (s) => url(`/${project}/stories/${s.storySlug}`);
+// An arc's or chapter's address (D-180) comes with it from the index.
+const containerHref = (s, c) => url(`/${project}/stories/${s.storySlug}/${c.slug}`);
+const sceneHref = (scene) => url(`/${project}/stories/${scene.storySlug}/scenes/${scene.slug}`);
+const count = (n) => `${n} scene${n === 1 ? '' : 's'}`;
+---
+
+{featured.length > 0 && (
+  <div class="entity-appearances">
+    <h2>Featured In</h2>
+    <ul class="scene-groups">
+      {featured.map((s) => (
+        <li>
+          <a href={storyHref(s)}>{s.title}</a>
+          {s.containers.length > 0 && (
+            <>{" "}<span class="scene-group-count">·</span>{" "}{s.containers.map((c, i) => <>{i > 0 ? ', ' : ''}<a href={containerHref(s, c)}>{c.label}</a></>)}</>
+          )}
+          {s.scenes.length > 0 && (
+            <details>
+              <summary><span class="scene-group-count">{count(s.scenes.length)}</span></summary>
+              <ul>
+                {s.scenes.map((scene) => (
+                  <li><a href={sceneHref(scene)}>{scene.title}</a></li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}

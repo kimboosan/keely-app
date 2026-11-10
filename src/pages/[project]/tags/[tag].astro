@@ -1,7 +1,10 @@
 ---
+import { wikiCrumbs } from '../../../utils/crumbs.js';
+import { url } from '../../../utils/url.js';
 import { entrySlug } from '../../../utils/entries.mjs';
 import { getProjects, getProjectConfig, slugify } from '../../../utils/config.js';
 import { projectEntityTypes } from '../../../utils/projectEntities.js';
+import { storyTagsInProject } from '../../../utils/storyTags.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 
 export async function getStaticPaths() {
@@ -12,19 +15,29 @@ export async function getStaticPaths() {
     // Every entity type, built-in and custom (D-086), with the project's entries.
     const entityTypes = await projectEntityTypes(project.slug);
     const allEntities = entityTypes.flatMap(t => t.entries);
+    // The project's own tags, and each story's at any level (D-175).
+    const projectTags = getProjectConfig(project.slug).tags ?? [];
+    const storyTags = await storyTagsInProject(project.slug);
 
     const tagMap = new Map();
-    for (const entity of allEntities) {
-      for (const tag of entity.data.tags ?? []) {
-        const slug = slugify(tag);
-        if (!tagMap.has(slug)) tagMap.set(slug, tag);
-      }
-    }
+    const note = (tag) => {
+      const slug = slugify(String(tag));
+      if (slug && !tagMap.has(slug)) tagMap.set(slug, String(tag));
+    };
+    for (const entity of allEntities) (entity.data.tags ?? []).forEach(note);
+    projectTags.forEach(note);
+    for (const { tags } of storyTags.values()) for (const [slug, label] of tags) if (!tagMap.has(slug)) tagMap.set(slug, label);
 
     for (const [tagSlug, tagLabel] of tagMap) {
       paths.push({
         params: { project: project.slug, tag: tagSlug },
-        props: { tagLabel, entityTypes, projectSlug: project.slug },
+        props: {
+          tagLabel,
+          entityTypes,
+          projectSlug: project.slug,
+          projectHasTag: projectTags.some(t => slugify(String(t)) === tagSlug),
+          stories: [...storyTags].filter(([, s]) => s.tags.has(tagSlug)).map(([slug, s]) => ({ slug, title: s.title })),
+        },
       });
     }
   }
@@ -33,7 +46,7 @@ export async function getStaticPaths() {
 }
 
 const { project } = Astro.params;
-const { tagLabel, entityTypes, projectSlug } = Astro.props;
+const { tagLabel, entityTypes, projectSlug, projectHasTag, stories } = Astro.props;
 const projectConfig = await getProjectConfig(project);
 
 const hasTag = e => (e.data.tags ?? []).some(t => slugify(t) === Astro.params.tag);
@@ -44,18 +57,32 @@ const sections = entityTypes
 
 <SiteLayout
   title={`${tagLabel} — ${projectConfig.title}`}
-  backLink={`/${project}/tags`}
-  backLabel="Tags"
+  crumbs={[...wikiCrumbs(project), { href: `/${project}/tags`, label: 'Tags' }]}
 >
   <main class="tag-page">
     <h1>{tagLabel}</h1>
+
+    {projectHasTag && (
+      <p>All of <a href={url(`/projects/${project}`)}>{projectConfig.title}</a> carries this tag.</p>
+    )}
+
+    {stories.length > 0 && (
+      <section class="tag-section">
+        <h2>Stories</h2>
+        <ul>
+          {stories.map(s => (
+            <li><a href={url(`/${project}/stories/${s.slug}`)}>{s.title}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     {sections.map(t => (
       <section class="tag-section">
         <h2>{t.plural}</h2>
         <ul>
           {t.tagged.map(e => (
-            <li><a href={`/${project}/${t.name}/${entrySlug(e)}`}>{e.data.name}</a></li>
+            <li><a href={url(`/${project}/${t.name}/${entrySlug(e)}`)}>{e.data.name}</a></li>
           ))}
         </ul>
       </section>

@@ -1,19 +1,27 @@
 ---
+import { url } from '../utils/url.js';
 import SiteLayout from './SiteLayout.astro';
 import { getStoryConfig } from '../utils/config.js';
+import AdultNotice from '../components/AdultNotice.astro';
+import { storyCrumbs } from '../utils/crumbs.js';
 
-const { title, projectSlug, storySlug, sidebarCollapsed = false } = Astro.props;
+// The breadcrumbs (D-177) run through the story to the arcs and chapters
+// above the page (`trail`, from storyReading()); the story page itself
+// passes its own `crumbs`.
+// `rated` ({ rating, title }) is an arc's or chapter's own rating for the
+// adult-content notice, when the page has one (D-173); else the story's.
+const { title, projectSlug, storySlug, sidebarCollapsed = false, crumbs, trail = [], rated = null } = Astro.props;
 const story = getStoryConfig(projectSlug, storySlug);
 ---
 
 <SiteLayout
   title={title}
-  backLink={`/${projectSlug}/stories/${storySlug}`}
-  backLabel={story.title}
+  crumbs={crumbs ?? storyCrumbs(projectSlug, storySlug, trail)}
   showNavToggle={true}
   showWikiToggle={true}
   sidebarCollapsed={sidebarCollapsed}
 >
+  <AdultNotice project={projectSlug} storySlug={storySlug} title={rated?.title ?? story.title} rating={rated?.rating ?? story.rating} />
   <div id="pane-row">
     <div id="prose-pane">
       <slot name="prose" />
@@ -22,12 +30,12 @@ const story = getStoryConfig(projectSlug, storySlug);
     <div id="wiki-pane">
       <div class="wiki-pane-inner">
         <div class="wiki-pane-index-link">
-          <a href={`/${projectSlug}/wiki`}>Wiki Index ↗</a>
+          <a href={url(`/${projectSlug}/wiki`)}>Wiki Index ↗</a>
         </div>
         <slot name="wiki" />
       </div>
     </div>
   </div>
   <div id="wiki-backdrop"></div>
-  <script is:inline src="/scripts/reader.js"></script>
+  <script is:inline src={url('/scripts/reader.js')}></script>
 </SiteLayout>

@@ -7,6 +7,7 @@ import { BUILT_IN_ENTITY_TYPES, customTypesOf } from '../shared/entityTypes.mjs'
 import { entriesIn } from './entries.mjs';
 
 const BUILT_IN_PLURALS = { characters: 'Characters', places: 'Places', groups: 'Groups' };
+const BUILT_IN_SINGULARS = { characters: 'Character', places: 'Place', groups: 'Group' };
 
 // A collection's entries, or none if it doesn't exist — a custom type
 // declared in project.toml whose folder hasn't been created yet.
@@ -18,14 +19,14 @@ export async function entriesOf(typeName) {
   }
 }
 
-// [{ name, plural, entries }] — built-in types first, then the project's own
+// [{ name, singular, plural, entries }] — built-in types first, then the project's own
 // custom types in the order project.toml declares them; entries are the
 // project's own (D-159).
 export async function projectEntityTypes(projectSlug) {
   const config = getProjectConfig(projectSlug);
   const types = [
-    ...BUILT_IN_ENTITY_TYPES.map((name) => ({ name, plural: BUILT_IN_PLURALS[name] })),
-    ...customTypesOf(config).map((t) => ({ name: t.name, plural: t.plural || t.name })),
+    ...BUILT_IN_ENTITY_TYPES.map((name) => ({ name, singular: BUILT_IN_SINGULARS[name], plural: BUILT_IN_PLURALS[name] })),
+    ...customTypesOf(config).map((t) => ({ name: t.name, singular: t.singular || t.plural || t.name, plural: t.plural || t.name })),
   ];
   return Promise.all(
     types.map(async (t) => ({

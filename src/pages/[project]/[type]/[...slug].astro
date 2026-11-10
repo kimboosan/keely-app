@@ -1,4 +1,6 @@
 ---
+import { wikiCrumbs } from '../../../utils/crumbs.js';
+import { BASE, url } from '../../../utils/url.js';
 // A custom entity type's page (D-086) — one generic page for every type an
 // author declares in project.toml, showing its declared fields as the
 // format spec's field-type table describes. Built-in types (characters,
@@ -15,6 +17,8 @@ import { readEntityIndex, readOtherProject, readRelationships } from '../../../u
 import { resolveWikiLinks } from '../../../shared/wikiLinks.mjs';
 import { warnOnce } from '../../../utils/warnOnce.js';
 import SiteLayout from '../../../layouts/SiteLayout.astro';
+import SceneList from '../../../components/SceneList.astro';
+import FeaturedList from '../../../components/FeaturedList.astro';
 
 export async function getStaticPaths() {
   const projects = getProjects();
@@ -42,7 +46,7 @@ const data = entry.data;
 const entityIndex = readEntityIndex(project);
 const linkHtml = (value) => {
   const text = String(value).trim();
-  return resolveWikiLinks(text.startsWith('[[') ? text : `[[${text}]]`, { project, entityIndex, otherProject: readOtherProject });
+  return resolveWikiLinks(text.startsWith('[[') ? text : `[[${text}]]`, { project, entityIndex, otherProject: readOtherProject, base: BASE });
 };
 const allImages = import.meta.glob('@vault/content/projects/*/*/*/*.{jpg,png,webp,gif,svg}', { eager: true });
 
@@ -99,8 +103,7 @@ const mentionedIn = relationships.mentionedIn[slug] || [];
 
 <SiteLayout
   title={`${data.name} — ${projectConfig.title}`}
-  backLink={`/${project}/${type}`}
-  backLabel={typePlural}
+  crumbs={[...wikiCrumbs(project), { href: `/${project}/${type}`, label: typePlural }]}
 >
   <main class="entity-page">
     <h1>{data.name}</h1>
@@ -135,18 +138,8 @@ const mentionedIn = relationships.mentionedIn[slug] || [];
       <Fragment set:html={bodyHtml} />
     </div>
 
-    {mentionedIn.length > 0 && (
-      <div class="entity-appearances">
-        <h2>Mentioned In</h2>
-        <ul>
-          {mentionedIn.map((scene) => (
-            <li>
-              <a href={`/${project}/stories/${scene.storySlug}/scenes/${scene.slug}`}>{scene.title}</a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
+    <FeaturedList project={project} featured={relationships.featuredIn?.[type]?.[slug] ?? []} />
+    <SceneList project={project} heading="Mentioned In" scenes={mentionedIn} />
 
     {data.tags && data.tags.length > 0 && (
       <div class="entity-tags">
@@ -154,7 +147,7 @@ const mentionedIn = relationships.mentionedIn[slug] || [];
         <ul>
           {data.tags.map((tag) => (
             <li class="tag">
-              <a href={`/${project}/tags/${slugify(tag)}`}>{tag}</a>
+              <a href={url(`/${project}/tags/${slugify(tag)}`)}>{tag}</a>
             </li>
           ))}
         </ul>
