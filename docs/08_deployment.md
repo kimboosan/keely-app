@@ -26,7 +26,19 @@ npm run build
 
 This runs the entity index builder, the scene image copy script, and the Astro production build in sequence. The output lands in the `dist/` folder at your project root.
 
+**Only published scenes go online.** A production build includes only scenes whose `status` is `published`, and their images. Drafts stay on your machine: `npm run dev` still shows every scene, so you can read them as you write. A story with no published scenes yet still gets its page, so you can announce it before its first scene goes up.
+
 Check the terminal output for any warnings — missing required fields, unresolved wiki-links, or missing alt text will appear here. Fix any issues before deploying.
+
+### If your site lives in a subfolder
+
+Most hosts put your site at the top of its address (`https://my-stories.netlify.app/`), and there's nothing to set. If yours lives in a subfolder — `https://example.com/stories/`, or GitHub Pages' `yourusername.github.io/repository-name/` — tell Keely where, so every link on the site points inside it. Create `keely-hosting.toml` beside your `src/` folder:
+
+```toml
+address = "https://example.com/stories/"
+```
+
+`npm run dev` ignores it, so your local preview works as before. Build again after changing it.
 
 ### Preview the production build locally
 
@@ -77,7 +89,7 @@ GitHub Pages is a free hosting service built into GitHub. It requires a GitHub a
 3. Push your project files to the repository.
 4. In your repository settings, go to **Pages** and set the source to the `dist/` folder on your main branch, or configure a GitHub Actions workflow to run the build automatically on push.
 
-GitHub Pages serves your site at `yourusername.github.io/repository-name` by default. Custom domains are supported.
+GitHub Pages serves your site at `yourusername.github.io/repository-name` by default — a subfolder, so set its address in `keely-hosting.toml` (see "If your site lives in a subfolder" above). Custom domains are supported.
 
 ### Updating your site
 
@@ -103,7 +115,9 @@ The ongoing publishing workflow is the same regardless of your deployment target
 2. Run a production build: `npm run build`. It rebuilds the entity index first, so new and renamed entities are picked up.
 3. Deploy the updated `dist/` folder to your host.
 
-The Phase 2 editor app will consolidate steps 2–3 into a single "Publish" button.
+The Phase 2 editor app will do steps 2–3 for you, from its "Put site online" button.
+
+**Web addresses.** A scene's address is its name, not its number (`…/scenes/the-fax/`), so adding, moving or renumbering scenes never changes the address of a scene readers may have bookmarked. Renaming a scene does.
 
 ---
 

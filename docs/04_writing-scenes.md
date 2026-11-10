@@ -48,36 +48,34 @@ your story has three chapters, the scenes run `01-`, `02-`, `03-`... straight th
 
 ```
 scenes/
-  00_chapter-01-the-order/
+  chapter-01-the-order/
     01-the-order/
     02-peters-office/
-  02_chapter-02-the-fax/
-    03-the-fax/       ← continues from where chapter 01 left off
+  chapter-02-the-fax/
+    03-the-fax/       ← continues from where chapter 1 left off
     04-breakdown/
 ```
 
-(The `00_` and `02_` in front of the chapter folders are position markers: "after scene 0", "after scene 2". They keep the folders in
-reading order; see `docs/01_your-first-project.md`.)
+The numbers in the folders are the numbers readers see: Chapter 2, Scene 3. Choose a descriptive name for the rest of the folder
+name — it's the scene's web address and the name you link to it by: `03-the-fax/` is at `…/scenes/the-fax/`, linked as `[[the-fax]]`.
+Scene names must be unique within a story.
 
-Use zero-padded numbers so ordering stays correct beyond nine scenes (`001-` through `009-`, then `010-`, `011-`, and so on). Choose a
-descriptive slug for the rest of the name — you'll thank yourself later when navigating a large scene list.
+**Padding:** numbers are zero-padded (`01-` through `99-`) so folders sort in reading order. If a story grows past 99 scenes,
+renumbering (below) widens every scene number to three digits for you in one step — otherwise `100-…` would sort between `10-…` and
+`11-…`.
 
-**How much padding do you need?** Two digits (01- through 99-) are enough to start with. If you choose three digits from the start,
-Keely keeps them. If a story grows past 99 scenes, renumbering (below) widens every number to three digits for you in one step —
-otherwise `100-…` would sort between `10-…` and `11-…`.
-
-To insert a scene between existing scenes (or move one), give the folder a temporary prefix that sorts where you want it, then let
-Keely renumber the story:
+To insert a scene between existing scenes (or move one), give the folder any number that sorts where you want it, then let Keely
+renumber the story:
 
 ```bash
 npm run renumber -- my-project/my-story            # dry run: shows what would change
 npm run renumber -- my-project/my-story --apply    # renames the folders
 ```
 
-Renumbering also updates every `[[wiki-link]]` to a renamed scene **within that story** — scene folder names are only unique within a
-story, so links in other stories and in entity descriptions are left alone. It renumbers chapters and arcs too, and keeps their position
-markers right. If anything goes wrong partway, it undoes itself completely; and it refuses to run over a story that changed since its
-dry run.
+Renumbering puts every scene, chapter, arc and interlude number in order. Because links use a scene's name, not its number, it never
+breaks a link or changes a web address. (Links written the older way, with the number, like `[[03-the-fax]]`, are updated to the name
+within that story.) If anything goes wrong partway, it undoes itself completely; and it refuses to run over a story that changed since
+its dry run, or a folder whose order isn't loose scenes, then arcs, then chapters (see `docs/01_your-first-project.md` for interludes).
 
 ### Copy the template
 
@@ -105,12 +103,13 @@ your scene prose.
 | `content_warnings` | No | Block | Scene-level content warnings. Additive — these layer on top of story-level warnings, never replace them. See Content Warnings at Scene Level below. |
 | `author_notes.top` | No | String | Author's note shown above the scene prose. Plain text — markdown and wiki-links aren't converted. |
 | `author_notes.bottom` | No | String | Author's note shown below the scene prose. Plain text — markdown and wiki-links aren't converted. |
-| `pov_character` | No | Wiki-link | The character whose perspective drives this scene (`[[character-slug]]`). Omit for omniscient or ensemble scenes. Only scenes with this field set are visible to readers following a POV-filtered through-line. |
-| `characters_in_scene` | No | List | All characters who appear in this scene, each as a wiki-link. Include the POV character if set. This is how the generator builds "appears in" lists on character pages. |
-| `scene_location` | No | Wiki-link | The primary location of this scene (`[[place-slug]]`). This is how the generator builds "scenes at this location" lists on place pages. |
-| `also_at` | No | List | Secondary locations, if the scene moves between places. Each as a wiki-link. |
+| `pov_character` | No | Slug | The character whose perspective drives this scene: their slug, without brackets (`angie-mcdonnell`). Omit for omniscient or ensemble scenes. Only scenes with this field set are visible to readers following a POV-filtered through-line. |
+| `characters_in_scene` | No | List | All characters who appear in this scene, each by slug, without brackets. The POV character counts even if you leave them out. This is how the generator builds "appears in" lists on character pages. |
+| `scene_location` | No | Slug | The primary location of this scene: the place's slug, without brackets (`moonbase-delta`). This is how the generator builds "scenes at this location" lists on place pages. |
+| `also_at` | No | List | Secondary locations, if the scene moves between places. Each by slug, without brackets. |
 | `threads` | No | List | Story threads this scene belongs to, beyond the main reading order. Free-form strings. Do not include "main" — every scene is automatically part of the main order. See Story Threads below. |
-| `tags` | No | List | Free-form tags for categorization and search. |
+| `tags` | No | List | Free-form tags for what belongs to this scene; the story's own go in `story.toml`. Shown on the scene page, and they put the story on those tags' pages. |
+| `featuring` | No | Block | Other entries this scene features, by type (groups or your custom types): `featuring: { relationships: [gene-hunt-x-sam-tyler] }`. Lists the scene under Featured In on each entry's page. |
 | `choice_point` | No | Boolean | CYOA hook — marks this scene as a reader branching point. Phase 1 reads but ignores this field. See CYOA Hooks below. |
 | `next_scene_branches` | No | List | CYOA hook — the choices offered at this branching point. Phase 1 reads but ignores this field. See CYOA Hooks below. |
 
@@ -217,15 +216,16 @@ They open in a new tab, with a small ↗ after the text, so readers know they're
 
 ### Links to other scenes
 
-You can also link to another scene in the same story by its folder name:
+You can also link to another scene in the same story by its name — its folder name without the number:
 
 ```markdown
-As she'd learned back in [[03-the-fax]], nothing on the station stayed quiet for long.
-[[03-the-fax|that morning]], she'd been sure of it.
+As she'd learned back in [[the-fax]], nothing on the station stayed quiet for long.
+[[the-fax|that morning]], she'd been sure of it.
 ```
 
-The link shows the scene's title (or your `|display text`) and takes readers to that scene. Scene links only reach scenes in the same
-story, since scene folder names are only unique within a story.
+The link shows the scene's title (or your `|display text`) and takes readers to that scene. Because the number isn't part of it, the
+link keeps working however the story is renumbered. Scene links only reach scenes in the same story, since scene names are only unique
+within a story.
 
 ### Inline images
 
@@ -304,9 +304,9 @@ frontmatter today.
 choice_point: true
 next_scene_branches:
   - label: "Follow Peter"
-    scene: "[[02-peters-office]]"
+    scene: peters-office
   - label: "Stay with Angie"
-    scene: "[[02-angie-waits]]"
+    scene: angie-waits
 ```
 
 The Phase 1 generator reads these fields but does not act on them — branching navigation will be implemented in a future phase. Like the

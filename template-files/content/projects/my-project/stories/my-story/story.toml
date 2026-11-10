@@ -97,13 +97,24 @@ completion_status = "in-progress"
 
 # When this story began publication. Optional.
 # Format: YYYY-MM-DD
-start_date = ""
+# start_date = 2026-01-15
 
 # Your expected total number of scenes or chapters. Optional.
 # Use a number, or "?" if you don't know yet.
 expected_chapters = "?"
 
 # last_updated is computed automatically at build time — do not set it here.
+
+# Tags for the whole story. Optional, free-form. The story is listed on
+# the tag page of every tag it carries: these, its arcs' and chapters'
+# (in their _meta.toml), and its published scenes'.
+# tags = ["found family", "slow burn"]
+
+# Entries the whole story features, by type: groups, or your own custom
+# types. Optional. Lists the story under "Featured In" on their pages.
+# It's a table, so it goes at the very end of this file:
+#   [featuring]
+#   relationships = ["gene-hunt-x-sam-tyler"]
 
 
 # -----------------------------------------------------------------------

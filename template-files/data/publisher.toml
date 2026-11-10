@@ -45,3 +45,11 @@ projects_label = "Stories"
 # The label for the link to your about page (built from authors.toml).
 # Defaults to "About the Author".
 about_label = "About the Author"
+
+# Readers and search engines. Both optional, off unless set.
+# adult_notice: a page rated Mature or Explicit opens behind a short
+# notice with Continue and Go back.
+# adult_notice = true
+# hide_from_search_engines: asks search engines not to list your site.
+# The major ones honour it; it isn't a guarantee.
+# hide_from_search_engines = true

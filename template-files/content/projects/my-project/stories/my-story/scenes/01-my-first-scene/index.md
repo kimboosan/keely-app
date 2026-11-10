@@ -98,7 +98,7 @@ author_notes:
 narrative_mode: third-limited
 
 # The character whose perspective drives this scene. Optional.
-# Use wiki-link format: "[[character-slug]]"
+# Use the character's slug, without brackets: angie-mcdonnell
 # Omit for omniscient, ensemble, or non-POV scenes.
 # Only scenes with pov_character set are visible to readers following
 # a POV-filtered through-line for that character.
@@ -106,18 +106,19 @@ narrative_mode: third-limited
 
 # All characters who appear in this scene. Optional but recommended —
 # this is how the generator builds "appears in" lists on character pages.
-# Use wiki-link format for each. Include the POV character if set.
+# Use each character's slug, without brackets. The POV character
+# counts even if you leave them out.
 characters_in_scene:
   - ""
 
 # The primary location of this scene. Optional but recommended —
 # this is how the generator builds "scenes at this location" lists
 # on place pages.
-# Use wiki-link format: "[[place-slug]]"
+# Use the place's slug, without brackets: moonbase-delta
 # scene_location: ""
 
 # Secondary locations, if the scene moves between places. Optional.
-# Use wiki-link format for each.
+# Use each place's slug, without brackets.
 also_at:
   - ""
 
@@ -155,15 +156,16 @@ tags: []
 #
 # choice_point        — marks this scene as a reader branching point.
 # next_scene_branches — the choices offered to the reader, each with
-#                       a label and a destination scene wiki-link.
+#                       a label and a destination scene's name (its
+#                       folder name without the number).
 #
 # Example when active:
 #   choice_point: true
 #   next_scene_branches:
 #     - label: "Follow Peter"
-#       scene: "[[02-peters-office]]"
+#       scene: peters-office
 #     - label: "Stay with Angie"
-#       scene: "[[02-angie-waits]]"
+#       scene: angie-waits
 
 choice_point: false
 next_scene_branches: []

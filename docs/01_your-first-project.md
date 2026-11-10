@@ -171,8 +171,7 @@ Scenes go in the story's `scenes/` folder. You'll add your first scene shortly.
 ### Flat vs. nested story structure
 
 A story can be flat — just scenes — or grouped into chapters, and chapters into arcs. Use as much or as little structure as your story
-calls for, in any order: a prologue chapter before your first arc, an interlude scene between chapters, an epilogue scene after the last
-arc are all fine.
+calls for.
 
 **Flat** — scenes only. Good for short works, novellas, or stories where you don't want visible chapter divisions:
 
@@ -191,31 +190,39 @@ my-project-name/stories/
 my-project-name/stories/
   my-story/
     scenes/
-      00_chapter-01-prologue/
-        01-the-summons/
-      01_arc-01-setup/
-        01_chapter-02-the-evacuation-order/
+      01-the-summons/                 ← a scene before Arc 1: a prologue
+      arc-01-setup/
+        chapter-01-the-evacuation-order/
           02-the-order/
           03-peters-office/
-        03_chapter-03-breakdown/
+        chapter-02-breakdown/
           04-vodka-and-theories/
-      04-epilogue/
+      arc-01.1-quiet-night/           ← an interlude between the arcs
+        05-the-long-dark/
+      arc-02-crisis/
+        chapter-03-what-comes-next/
+          06-whats-going-on/
 ```
 
-**How the folder names work:**
+**How the folder names work:** the numbers in the folders are the numbers your readers see.
 
 - A **scene** folder starts with its number in the story: `02-the-order`. Scene numbers run straight through the whole story — they
   don't restart in each chapter.
-- An **arc or chapter** folder has two numbers: `03_chapter-03-breakdown`. The second one (`chapter-03`) is the chapter's own number,
-  the one readers see ("Chapter 03: Breakdown"). The **first** one (`03_`) only says where it sits: *after scene 3*. It's what makes the
-  folders sort into reading order in Finder or Obsidian, and readers never see it.
-- Two arcs or chapters in a row with no scene between them get a letter to keep them in order: `04_…`, `04a_…`.
+- An **arc** is `arc-01-setup`, a **chapter** `chapter-02-breakdown`: Arc 1, Chapter 2. Chapters count through the whole story, whichever
+  arc they're in.
+- Within the story, or within an arc, folders sort **loose scenes first, then arcs, then chapters.** A scene at the top works as a
+  prologue.
+- For scenes anywhere else in between — an interlude between arcs or chapters, an epilogue after the last arc — use an **interlude**.
+  It's named after what it follows plus `.1`: `arc-01.1-quiet-night` comes after Arc 1, `chapter-03.1-a-letter-home` after Chapter 3,
+  `arc-00.1-prologue` before Arc 1. A second one in the same spot is `.2`, up to `.9`. An interlude isn't counted as an arc or chapter;
+  readers see it by its title.
 
 You don't have to get these numbers right by hand. After adding or rearranging folders, run `npm run renumber -- my-project-name/my-story` to see
 what would change, then `npm run renumber -- my-project-name/my-story --apply` to put every number in order (see `docs/04_writing-scenes.md`).
 
-Container folders (arcs and chapters) don't contain an `index.md` — that file is what identifies a folder as a scene. To give an arc or
-chapter a title different from its folder name, add a `_meta.toml` file inside it with `title = "Your Title"`.
+Container folders (arcs, chapters and interludes) don't contain an `index.md` — that file is what identifies a folder as a scene. To
+give one a title different from its folder name, or a summary, rating or tags of its own, add a `_meta.toml` file inside it with
+`title = "Your Title"` (see `docs/REFERENCE.md`).
 
 See `docs/REFERENCE.md` for folder naming conventions and scene numbering details.
 

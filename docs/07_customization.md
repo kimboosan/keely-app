@@ -80,6 +80,20 @@ These fields are set in `publisher.toml` and `authors.toml` — they're covered 
 
 ---
 
+## Readers and Search Engines
+
+Two settings in `publisher.toml`, both off unless you set them:
+
+```toml
+adult_notice = true
+hide_from_search_engines = true
+```
+
+- **`adult_notice`** — a story, arc or chapter rated Mature or Explicit opens behind a short notice ("*Title* is rated Explicit. It's meant for adult readers.") with **Continue** and **Go back**. A page uses the nearest rating that covers it: an arc's or chapter's own `rating` in its `_meta.toml`, otherwise the story's. A reader who continues isn't asked again for that story, in that browser; agreeing to Explicit also covers Mature.
+- **`hide_from_search_engines`** — every page asks search engines not to list your site. The major search engines honour this, but it isn't a guarantee, and anyone with the address can still read it. Only a password truly hides a site.
+
+---
+
 ## Entity Type Customization
 
 The three default entity types — characters, places, and groups — can have their display labels and colors customized in `project.toml`. You can also declare entirely new entity types for things like artifacts, magic systems, ships, or any other category your world needs.

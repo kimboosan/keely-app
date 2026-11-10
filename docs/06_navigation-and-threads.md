@@ -24,10 +24,10 @@ The main reading order is determined entirely by folder structure — scene `01-
 
 POV filtering lets readers follow the story through the eyes of a single character, seeing only the scenes where that character is the point-of-view narrator.
 
-To make a scene part of a character's POV thread, set `pov_character` in the scene's frontmatter:
+To make a scene part of a character's POV thread, set `pov_character` in the scene's frontmatter to the character's slug, without brackets:
 
 ```yaml
-pov_character: "[[angie-mcdonnell]]"
+pov_character: angie-mcdonnell
 ```
 
 Only scenes with `pov_character` set are visible in POV-filtered navigation. Scenes without a POV character set — omniscient scenes, ensemble scenes, or scenes you've chosen not to tag — appear only in the main reading order.

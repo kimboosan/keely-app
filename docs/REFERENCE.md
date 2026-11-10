@@ -198,7 +198,10 @@ reader site.
 | `published` | **Yes** | Live for readers |
 
 Only `published` scenes are built and visible to readers. All other
-statuses are treated as drafts.
+statuses are treated as drafts. `npm run dev` shows every scene, so you
+can read your drafts as you write; `npm run build` includes only
+`published` ones. A story with no published scenes still gets its page,
+so it can be announced before its first scene.
 
 ---
 
@@ -266,6 +269,8 @@ Optional. How far a group's influence reaches.
 | `storefront_blurb` | No | Markdown welcome text |
 | `projects_label` | No | Defaults to "Stories" |
 | `about_label` | No | Defaults to "About the Author" |
+| `adult_notice` | No | `true` or `false` (default). When `true`, a page rated Mature or Explicit opens behind a notice with **Continue** and **Go back**; continuing is remembered per story in the reader's browser |
+| `hide_from_search_engines` | No | `true` or `false` (default). When `true`, every page asks search engines not to list it. The major ones honour this, but it isn't a guarantee: only a password truly hides a site |
 
 ### authors.toml
 | Field | Required? | Notes |
@@ -295,6 +300,7 @@ Optional. How far a group's influence reaches.
 | `content_warnings` | No | Whole section optional at project level |
 | `entity_types` | No | Only needed for customization or custom types |
 | `reader_defaults` | No | All fields have built-in defaults |
+| `tags` | No | Free-form list, shown on the project page; stories don't inherit them |
 
 ### story.toml
 | Field | Required? | Notes |
@@ -319,6 +325,27 @@ Optional. How far a group's influence reaches.
 | `acknowledgments` | No | Whole section optional |
 | `license` | No | Inherits from project.toml if omitted |
 | `reader_defaults` | No | Inherits from project.toml if omitted |
+| `tags` | No | Free-form list. The story is listed on the tag page of every tag it carries: its own, its arcs' and chapters', and its published scenes' |
+| `featuring` | No | Entries the whole story features, by type: `[featuring]` then `relationships = ["gene-hunt-x-sam-tyler"]`. Lists the story under **Featured In** on each entry's page |
+
+### _meta.toml (inside an arc, chapter or interlude folder)
+All optional. Each arc, chapter and interlude has a page of its own,
+where these show.
+
+| Field | Notes |
+|---|---|
+| `title` | Display title; without one, it comes from the folder name |
+| `summary` | Plain text; a blank line starts a new paragraph |
+| `rating` | Controlled vocabulary. Covers this arc's or chapter's page and its scenes (for the adult-content notice); keep the story's `rating` the highest across it |
+| `tags` | Free-form list; puts the story on those tags' pages |
+| `featuring` | As in `story.toml`; listed under its story on each entry's Featured In once it holds a published scene |
+
+### keely-hosting.toml (beside `src/`)
+Optional. Where the finished site will live on the web.
+
+| Field | Notes |
+|---|---|
+| `address` | The site's full web address, e.g. `https://example.com/` or `https://example.com/stories/`. Needed only when the site goes in a subfolder: every link is then made under it. `npm run dev` ignores it |
 
 ### Character index.md
 | Field | Required? | Notes |
@@ -396,12 +423,13 @@ Optional. How far a group's influence reaches.
 | `content_warnings.custom` | No | Free-form |
 | `author_notes.top` | No | Plain text (markdown and wiki-links not converted) |
 | `author_notes.bottom` | No | Plain text (markdown and wiki-links not converted) |
-| `pov_character` | No | Wiki-link; omit for omniscient/ensemble |
-| `characters_in_scene` | No | List of wiki-links; drives character backlinks |
-| `scene_location` | No | Wiki-link; drives place backlinks |
-| `also_at` | No | List of wiki-links |
+| `pov_character` | No | A character's slug, without brackets (`angie-mcdonnell`); omit for omniscient/ensemble |
+| `characters_in_scene` | No | List of character slugs, without brackets; drives character backlinks |
+| `scene_location` | No | A place's slug, without brackets; drives place backlinks |
+| `also_at` | No | List of place slugs, without brackets |
 | `threads` | No | Free-form list; do not include "main" |
-| `tags` | No | |
+| `tags` | No | For what belongs to this scene; the story's own go in `story.toml`. Puts the story on those tags' pages |
+| `featuring` | No | Other entries this scene features, by type (groups or custom types): `featuring: { relationships: [gene-hunt-x-sam-tyler] }`. Lists the scene under Featured In on each entry's page |
 | `choice_point` | No | Phase 1 ignored; defaults to false |
 | `next_scene_branches` | No | Phase 1 ignored |
 
@@ -426,14 +454,18 @@ is always the folder name of what you're linking to.
 Displays "Angie" but links to Angie's character page.
 
 **Links to other scenes** — in scene prose, link to another scene in the
-same story by its folder name:
+same story by its name: its folder name without the number.
 ```
-[[03-the-fax]]
-[[03-the-fax|that morning]]
+[[the-fax]]                 ← the scene in 03-the-fax/
+[[the-fax|that morning]]
 ```
 Shows the scene's title (or your display text) and links to that scene.
-Scene folder names are only unique within a story, so scene links can't
-reach other stories.
+Because the number isn't part of the link, moving or renumbering scenes
+never breaks it. A link written the older way, with the number
+(`[[03-the-fax]]`), still works; `npm run renumber` updates it to the
+name. Scene names are only unique within a story, so scene links can't
+reach other stories. If a scene and an entity share a name, the link goes
+to the entity.
 
 **Inline images** — in scene prose, show an image stored in the scene's
 folder:
@@ -476,6 +508,7 @@ src/
     publisher.toml
     authors.toml                (+ author portraits)
     genres.json, ratings.json, warnings-vocabulary.json
+keely-hosting.toml              ← optional: where the finished site will live
 ```
 
 - Where a file sits says what it belongs to. Slugs need only be unique
@@ -495,70 +528,96 @@ src/
 - Use lowercase letters, numbers, and hyphens only
 - No spaces, underscores, or special characters
 - Keep slugs short but meaningful: `angie-mcdonnell` not `angela-francesca-mcdonnell`
-- The folder name becomes the URL, so choose something you won't want to change
+- An entity's folder name becomes its URL, so choose something you won't
+  want to change
 
-### Scene numbering
-Scene folders must have a numeric prefix to control reading order:
-```
-01-my-first-scene/
-02-my-second-scene/
-03-my-third-scene/
-```
-The generator reads folders alphanumerically, so `01-` always comes
-before `02-`. Use zero-padded numbers so ordering stays correct beyond
-nine scenes (`01-` through `09-`, then `10-`). Scene numbers run straight
-through the whole story; they don't restart in each chapter or arc.
-
-To insert or move a scene, give its folder a temporary prefix that sorts
-where you want it, then renumber the story:
-```
-npm run renumber -- my-project/my-story            # dry run
-npm run renumber -- my-project/my-story --apply    # renames folders, updates [[links]] in that story
-```
-Renumbering puts every scene, chapter and arc number (and position
-marker) in order, widens numbers to three digits if the story passes 99
-scenes, and undoes itself completely if anything fails.
-
-### Container folders (arcs and chapters)
-Stories can be flat (scenes only) or nested: a story holds scenes,
-chapters and arcs; an arc holds scenes and chapters; a chapter holds only
-scenes. Within any of them, items can sit **in any order** — a prologue
-chapter before the first arc, an epilogue scene after the last.
-
-Arc and chapter folders are named `PP_kind-NN-name`:
+### How a story's folders are named
+The numbers in a story's folders are the numbers readers see: Arc 2,
+Chapter 3, Scene 9.
 ```
 scenes/
-  00_chapter-01-prologue/
-    01-the-summons/
-  01_arc-01-setup/
-    01_chapter-02-the-evacuation-order/
-      02-the-order/
-      03-peters-office/
-    03_chapter-03-breakdown/
-      04-vodka-and-theories/
-  04-epilogue/
+  arc-01-evacuation/
+    chapter-01-the-order/
+      01-the-order/
+      02-a-history/
+    chapter-02-breakdown/
+      03-breakdown/
+  arc-01.1-quiet-night/          ← an interlude between the arcs
+    04-the-long-dark/
+  arc-02-crisis/
+    chapter-03-what-comes-next/
+      05-whats-going-on/
+    chapter-03.1-a-letter-home/  ← an interlude between chapters
+      06-dear-mum/
+    chapter-04-endgame/
+      07-take-off/
 ```
-- `kind-NN` (`chapter-02`) is the arc's or chapter's own number — the
-  one readers see.
-- `PP_` (`01_`) is a **position marker**: the number of the last scene
-  before it (`00` if none). It only keeps folders in reading order;
-  readers never see it. Two containers in a row with no scene between
-  them get a letter: `04_…`, `04a_…`.
-- `npm run renumber` sets all of these for you.
+- **Scenes** are `NN-name`, numbered straight through the whole story;
+  they don't restart in each chapter or arc.
+- **Arcs** are `arc-NN-name`, numbered through the story.
+- **Chapters** are `chapter-NN-name`, numbered through the story,
+  whichever arc they're in.
+- Numbers are zero-padded (`01`, `02` … `10`) so folders sort in reading
+  order, and widen to three digits once a story passes 99 scenes.
+- A story holds scenes, chapters, arcs and interludes; an arc holds
+  scenes, chapters and interludes; chapters and interludes hold only
+  scenes.
+
+**A scene's address is its name.** A scene's web address and its links
+use the folder name without the number: `05-whats-going-on/` is at
+`…/scenes/whats-going-on/` and linked as `[[whats-going-on]]`. So
+renumbering never changes a scene's address or breaks a link; renaming a
+scene does. Scene names must be unique within a story. An arc's, chapter's
+or interlude's page is at its kind and name: `…/arc-crisis`,
+`…/interlude-quiet-night`.
+
+### The order within a folder
+Folders sort by name, so within the story, or within an arc, the order
+is always: **loose scenes first, then arcs, then chapters.** A scene at
+the top of a story or an arc works as a prologue. For anything else in
+between, use an interlude.
+
+### Interludes
+An interlude holds scenes that sit between arcs or between chapters: an
+interlude, a prologue, an epilogue, a letter home. It isn't counted as an
+arc or chapter, so Arc 2 is still Arc 2; readers see it by its title,
+marked as an interlude.
+
+Its folder takes the number of the arc or chapter it follows, plus `.1`
+for the first interlude there, `.2` for a second, up to `.9`:
+- `arc-01.1-quiet-night` comes after Arc 1, among the arcs.
+- `chapter-03.1-a-letter-home` comes after Chapter 3, among the chapters.
+- `arc-00.1-prologue` comes before Arc 1.
+
+The number counts through the whole story, as chapter numbers do: an
+interlude opening Arc 2, before Chapter 3, is `chapter-02.1-…`. Its scenes
+are numbered with all the others.
+
+### Renumbering
+To insert or move something, give its folder a name that sorts where you
+want it (any number will do), then renumber the story:
+```
+npm run renumber -- my-project/my-story            # dry run
+npm run renumber -- my-project/my-story --apply    # renames folders
+```
+Renumbering puts every scene, chapter, arc and interlude number in
+order, and undoes itself completely if anything fails. It refuses, and
+says why, if a folder breaks the order above.
 
 Container folders do not contain an `index.md` — that file is what
 identifies a folder as a scene.
 
-**Older names.** Stories made before v0.7 name arcs and chapters without
-a marker (`arc-01-setup`, `chapter-02-breakdown`). They still work, but
-can only have loose scenes first, then arcs, then chapters. Run
-`npm run renumber -- my-project/my-story --apply` once to update them (scene folders
-aren't touched).
+**Older names.** Stories made with v0.7 or v0.8 name arcs and chapters
+with a position marker (`02_arc-01-setup`). They still work. Run
+`npm run renumber -- my-project/my-story --apply` once to update them to
+the names above; it also updates links written with scene numbers.
+Stories from before v0.7 (`arc-01-setup`) already have these names.
 
 ### Container titles
 An arc or chapter is labelled with its kind, number and title:
-`…_chapter-01-the-evacuation-order` becomes "Chapter 01: The Evacuation
-Order". For a different title, add a `_meta.toml` inside the folder:
+`chapter-01-the-evacuation-order` becomes "Chapter 1: The Evacuation
+Order"; an interlude is labelled by its title alone. For a different
+title, add a `_meta.toml` inside the folder:
 ```toml
 title = "When It All Began"
 ```
@@ -595,12 +654,20 @@ handles everything else.
 | Allied with (mirror) | If Group A declares `allied_with: [[group-b]]`, Group B automatically shows Group A as an ally |
 | Opposed to (mirror) | Same mirror logic for opposition relationships |
 
+### Groups and custom types
+| Computed field | How it's built |
+|---|---|
+| Featured In | Stories, arcs, chapters and scenes that list this entry under `featuring` |
+
+Entity scene lists (Appears in, Scenes at this location, Featured In) are
+grouped by story, and folded when a project has several stories.
+
 ### Scenes
 | Computed field | How it's built |
 |---|---|
 | Position in story | Ordinal derived from folder traversal order |
-| Previous scene | Adjacent scene in traversal order |
-| Next scene | Adjacent scene in traversal order |
+| Previous | The scene before, or the page of the arc, chapter or interlude it opens |
+| Next | The scene after, or the page of the arc, chapter or interlude that comes next |
 
 ---
 
