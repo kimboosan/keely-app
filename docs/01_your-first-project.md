@@ -73,6 +73,36 @@ Optional but recommended:
   `src/data/` and reference it by filename only.
 - `links` — your website, social profiles, newsletter, etc.
 
+### Pen names: the same site, or a site of their own?
+
+How you set up a pen name depends on one question: **should it have its own website?**
+
+**Same website, same folder.** If readers may know your pen names belong together, keep them in one Keely site. Give each pen name its
+own `[[authors]]` entry (all of them appear on the about page), and set each project's byline to the name it's published under, in its
+`project.toml`:
+
+```toml
+[author]
+name = "Jo March"
+```
+
+**Separate website, separate folder.** If a pen name must stay apart — its own website, readers never connecting it to your other
+names — give it a Keely site of its own: a separate folder with its own `src/content/` and `src/data/`, so its own `publisher.toml` and
+`authors.toml`, built and put online on its own. Nothing in one site's folder can link to, list or show anything from another's, so a
+stray link or a misfiled story can't connect the two. Either keep a second copy of Keely, or point one copy at each site's folder in turn
+with `KEELY_VAULT` (see `docs/REFERENCE.md`, "Where Things Live").
+
+**Changing your mind later.** To move a project from one site to the other by hand:
+
+1. Move its folder, `src/content/projects/<project>/`, into the other site's `src/content/projects/`. Everything the project owns —
+   its stories, scenes, characters, places, groups and images — travels with it.
+2. Copy its author's `[[authors]]` entry (and portrait, if any) into the other site's `authors.toml` and `src/data/`, if it isn't
+   there already.
+3. Check links between projects: `[[other-project/slug]]` links only reach projects in the same site, so links to or from the moved
+   project across the two sites become "not yet" links. The build lists none of them as errors, so search your files for the project's
+   folder name.
+4. Build and put both sites online again. The project's pages now live at the other site's address.
+
 ---
 
 ## Creating Your Project
