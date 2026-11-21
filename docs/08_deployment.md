@@ -14,6 +14,23 @@ You don't need to deploy to work on your site locally. You can run and preview y
 
 ---
 
+## What your web host needs
+
+Keely's site is plain files: no database, no PHP, nothing that runs on the server. Most web hosts can serve it, but check these before you choose one:
+
+- **It doesn't need Node.js, PHP or a database.** Keely makes your site's files on your computer; your host only stores them and sends them to readers, so ordinary shared hosting works. (Node.js is only needed on a host that builds the site from your source files itself, like a git setup on Netlify. Keely's ways of putting a site online never ask a host to do that.)
+- **It takes plain files.** You upload a folder of files, or drag it into a drop box. Website builders that only work through their own page editor (Wix, Squarespace and the like) can't host it.
+- **It opens a folder's `index.html` when an address ends in `/`.** Every page on your site lives in a folder of its own: a scene's address is `…/scenes/breakdown/`, and its page is `scenes/breakdown/index.html`. Almost every host does this without being asked; if pages show "not found" while the home page works, this is why.
+- **It serves pages to readers' browsers in the normal way, over the web.** The reader loads scenes and wiki entries in the background as readers click. That works on any web host, but not when the files are opened straight from your computer, which is why Keely shows them through a preview first.
+- **It sends each kind of file as what it is** (pages, styles, scripts, images, fonts). Standard hosts do; a misconfigured server can make the site appear unstyled.
+- **A web address you know before you make the files, if the site lives in a folder.** At the top of an address (`https://my-stories.netlify.app/`) there's nothing to set. In a folder (`https://example.com/stories/`, or GitHub Pages' `yourusername.github.io/repository-name/`), tell Keely the address first; see "If your site lives in a subfolder" below.
+- **Room for your images.** The site is the size of its folder, mostly images. Free plans are usually plenty.
+- **HTTPS** (an address starting `https://`). Not required, but browsers warn readers about sites without it, and most hosts include it free.
+
+Netlify, GitHub Pages and Neocities all meet these, as does almost any server you run yourself.
+
+---
+
 ## Before You Deploy
 
 ### Run a production build
